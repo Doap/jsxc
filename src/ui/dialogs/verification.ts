@@ -69,7 +69,7 @@ export default class VerificationDialog {
 
       let dom = this.dialog.getDom();
 
-      dom.find(`div[data-type]`).hide();
+      dom.find('div[data-type]').hide();
       dom.find(`div[data-type="${type}"]`).show().find('input:first').focus();
    };
 

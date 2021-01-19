@@ -46,7 +46,7 @@ export default class MeCommandPlugin extends AbstractPlugin {
       let meRegex = /^\/me /;
 
       if (direction !== DIRECTION.IN) {
-         return plaintext.replace(meRegex, `<i>/me</i> `);
+         return plaintext.replace(meRegex, '<i>/me</i> ');
       }
 
       if (!senderName && !contact) {

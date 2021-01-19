@@ -88,7 +88,7 @@ export default class Options {
          if (id === 'current') {
             if (!jid) {
                Log.info(
-                  `Skip option block with id "current", because no jid is provided`
+                  'Skip option block with id "current", because no jid is provided'
                );
 
                continue;

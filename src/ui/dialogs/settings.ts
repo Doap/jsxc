@@ -239,7 +239,7 @@ class PasswordPage extends Page {
       </div>`);
 
       let errorElement = $(
-         `<div class="jsxc-alert jsxc-alert--warning jsxc-hidden"></div>`
+         '<div class="jsxc-alert jsxc-alert--warning jsxc-hidden"></div>'
       );
 
       contentElement.append(explanationElement);

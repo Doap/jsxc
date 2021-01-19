@@ -213,7 +213,7 @@ export default class Archive {
 
    public onComplete = async (stanza: Element) => {
       let stanzaElement = $(stanza);
-      let finElement = stanzaElement.find(`fin[xmlns^="urn:xmpp:mam:"]`);
+      let finElement = stanzaElement.find('fin[xmlns^="urn:xmpp:mam:"]');
 
       if (finElement.length !== 1) {
          Log.warn('No fin element found');

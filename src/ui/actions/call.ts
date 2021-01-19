@@ -19,7 +19,7 @@ export async function startCall(
    if (resources.length === 0) {
       Log.debug('We need a full jid');
 
-      contact.addSystemMessage(`No distinct JID available.`);
+      contact.addSystemMessage('No distinct JID available.');
 
       return;
    }

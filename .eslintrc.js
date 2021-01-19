@@ -99,10 +99,7 @@ module.exports = {
         "@typescript-eslint/prefer-function-type": "error",
         "@typescript-eslint/prefer-namespace-keyword": "error",
         "@typescript-eslint/prefer-regexp-exec": "off",
-        "@typescript-eslint/quotes": "off", /* [
-            "error",
-            "single"
-        ],*/
+        "@typescript-eslint/quotes": "off",
         "@typescript-eslint/require-await": "off",
         "@typescript-eslint/restrict-plus-operands": "off",
         "@typescript-eslint/restrict-template-expressions": "off",

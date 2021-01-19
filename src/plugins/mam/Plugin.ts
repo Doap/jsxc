@@ -197,7 +197,7 @@ export default class MessageArchiveManagementPlugin extends AbstractPlugin {
 
    private onMamMessage = (stanza: string): boolean => {
       let stanzaElement = $(stanza);
-      let resultElement = stanzaElement.find(`result[xmlns^="urn:xmpp:mam:"]`);
+      let resultElement = stanzaElement.find('result[xmlns^="urn:xmpp:mam:"]');
       let queryId = resultElement.attr('queryid');
 
       if (resultElement.length !== 1 || !queryId) {

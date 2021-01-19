@@ -93,7 +93,7 @@ class Registration {
       }
 
       let formStanza = queryStanza.find(
-         `x[type="form"][xmlns="jabber:x:data"]`
+         'x[type="form"][xmlns="jabber:x:data"]'
       );
 
       if (formStanza.length === 1) {
