@@ -61,7 +61,12 @@ module.exports = {
             }
         ],
         "@typescript-eslint/member-ordering": "off",
-        "@typescript-eslint/naming-convention": "off",
+        "@typescript-eslint/naming-convention": [
+            "error",
+            // { "selector": "variableLike", "format": ["camelCase"] },
+            { "selector": "enum", "format": ["PascalCase"] },
+            { "selector": "interface", "format": ["PascalCase"], "prefix": ["I"]}
+          ],
         "@typescript-eslint/no-array-constructor": "error",
         "@typescript-eslint/no-empty-function": "off",
         "@typescript-eslint/no-empty-interface": "error",
