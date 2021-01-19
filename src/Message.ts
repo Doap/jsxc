@@ -1,22 +1,29 @@
-import Storage from './Storage'
-import Attachment from './Attachment'
-import JID from './JID'
-import * as CONST from './CONST'
-import Emoticons from './Emoticons'
-import IIdentifiable from './Identifiable.interface'
-import Client from './Client'
-import Utils from './util/Utils'
-import { IMessage, DIRECTION, IMessagePayload, MessageMark } from './Message.interface'
-import { ContactType } from './Contact.interface'
-import PersistentMap from './util/PersistentMap'
-import UUID from './util/UUID'
+import Storage from './Storage';
+import Attachment from './Attachment';
+import JID from './JID';
+import * as CONST from './CONST';
+import Emoticons from './Emoticons';
+import IIdentifiable from './Identifiable.interface';
+import Client from './Client';
+import Utils from './util/Utils';
+import {
+   IMessage,
+   DIRECTION,
+   IMessagePayload,
+   MessageMark,
+} from './Message.interface';
+import { ContactType } from './Contact.interface';
+import PersistentMap from './util/PersistentMap';
+import UUID from './util/UUID';
 import Pipe from '@util/Pipe';
 import { IJID } from './JID.interface';
 
-const ATREGEX = new RegExp('(xmpp:)?(' + CONST.REGEX.JID.source + ')(\\?[^\\s]+\\b)?', 'i');
+const ATREGEX = new RegExp(
+   '(xmpp:)?(' + CONST.REGEX.JID.source + ')(\\?[^\\s]+\\b)?',
+   'i'
+);
 
 export default class Message implements IIdentifiable, IMessage {
-
    public static exists(uid: string) {
       let data = PersistentMap.getData(Client.getStorage(), uid);
 
@@ -25,20 +32,48 @@ export default class Message implements IIdentifiable, IMessage {
 
    private static formattingPipe = new Pipe();
 
-   private static formatText(text: string, direction: DIRECTION, peer: IJID, senderName: string): Promise<string> {
-      return Message.formattingPipe.run(text, direction, peer, senderName).then(args => args[0]);
+   private static formatText(
+      text: string,
+      direction: DIRECTION,
+      peer: IJID,
+      senderName: string
+   ): Promise<string> {
+      return Message.formattingPipe
+         .run(text, direction, peer, senderName)
+         .then(args => args[0]);
    }
 
-   public static addFormatter(formatter: (text: string, direction: DIRECTION, peer?: IJID, senderName?: string) => Promise<[string, DIRECTION, IJID, string]> | string, priority?: number) {
-      Message.formattingPipe.addProcessor((text: string, direction: DIRECTION, peer: IJID, senderName: string) => {
-         let returnValue = formatter(text, direction, peer, senderName);
+   public static addFormatter(
+      formatter: (
+         text: string,
+         direction: DIRECTION,
+         peer?: IJID,
+         senderName?: string
+      ) => Promise<[string, DIRECTION, IJID, string]> | string,
+      priority?: number
+   ) {
+      Message.formattingPipe.addProcessor(
+         (
+            text: string,
+            direction: DIRECTION,
+            peer: IJID,
+            senderName: string
+         ) => {
+            let returnValue = formatter(text, direction, peer, senderName);
 
-         if (typeof returnValue === 'string') {
-            return Promise.resolve([returnValue, direction, peer, senderName]);
-         }
+            if (typeof returnValue === 'string') {
+               return Promise.resolve([
+                  returnValue,
+                  direction,
+                  peer,
+                  senderName,
+               ]);
+            }
 
-         return returnValue;
-      }, priority);
+            return returnValue;
+         },
+         priority
+      );
    }
 
    private uid: string;
@@ -59,7 +94,11 @@ export default class Message implements IIdentifiable, IMessage {
       this.storage = Client.getStorage();
       let data;
 
-      if (typeof arg0 === 'string' && arg0.length > 0 && arguments.length === 1) {
+      if (
+         typeof arg0 === 'string' &&
+         arg0.length > 0 &&
+         arguments.length === 1
+      ) {
          this.uid = arg0;
       } else if (typeof arg0 === 'object' && arg0 !== null) {
          data = arg0;
@@ -86,22 +125,30 @@ export default class Message implements IIdentifiable, IMessage {
             data.attachment = data.attachment.getUid();
          }
 
-         this.data.set($.extend({
-            unread: true,
-            mark: MessageMark.pending,
-            encrypted: null,
-            forwarded: false,
-            stamp: new Date().getTime(),
-            type: ContactType.CHAT,
-            encryptedHtmlMessage: null,
-            encryptedPlaintextMessage: null
-         }, data));
+         this.data.set(
+            $.extend(
+               {
+                  unread: true,
+                  mark: MessageMark.pending,
+                  encrypted: null,
+                  forwarded: false,
+                  stamp: new Date().getTime(),
+                  type: ContactType.CHAT,
+                  encryptedHtmlMessage: null,
+                  encryptedPlaintextMessage: null,
+               },
+               data
+            )
+         );
       } else if (!this.data.get('attrId')) {
          throw new Error(`Could not load message ${this.uid}`);
       }
    }
 
-   public registerHook(property: string, func: (newValue: any, oldValue: any) => void) {
+   public registerHook(
+      property: string,
+      func: (newValue: any, oldValue: any) => void
+   ) {
       this.data.registerHook(property, func);
    }
 
@@ -137,7 +184,10 @@ export default class Message implements IIdentifiable, IMessage {
    }
 
    public setNext(message: IMessage | string | undefined): void {
-      let nextId = typeof message === 'string' || typeof message === 'undefined' ? message : message.getUid();
+      let nextId =
+         typeof message === 'string' || typeof message === 'undefined'
+            ? message
+            : message.getUid();
 
       if (this.getNextId() === this.uid) {
          console.trace('Loop detected ' + this.uid);
@@ -171,11 +221,17 @@ export default class Message implements IIdentifiable, IMessage {
    }
 
    public isIncoming(): boolean {
-      return this.getDirection() === DIRECTION.IN || this.getDirection() === DIRECTION.PROBABLY_IN;
+      return (
+         this.getDirection() === DIRECTION.IN ||
+         this.getDirection() === DIRECTION.PROBABLY_IN
+      );
    }
 
    public isOutgoing(): boolean {
-      return this.getDirection() === DIRECTION.OUT || this.getDirection() === DIRECTION.PROBABLY_OUT;
+      return (
+         this.getDirection() === DIRECTION.OUT ||
+         this.getDirection() === DIRECTION.PROBABLY_OUT
+      );
    }
 
    public getAttachment(): Attachment {
@@ -224,7 +280,7 @@ export default class Message implements IIdentifiable, IMessage {
       return this.data.get('encryptedPlaintextMessage');
    }
 
-   public getSender(): { name: string, jid?: JID } {
+   public getSender(): { name: string; jid?: JID } {
       let sender = this.data.get('sender');
 
       return {
@@ -256,7 +312,9 @@ export default class Message implements IIdentifiable, IMessage {
    }
 
    public isTransferred(): boolean {
-      return this.data.get('mark', MessageMark.pending) >= MessageMark.transferred;
+      return (
+         this.data.get('mark', MessageMark.pending) >= MessageMark.transferred
+      );
    }
 
    public received() {
@@ -267,7 +325,10 @@ export default class Message implements IIdentifiable, IMessage {
 
    public isReceived(): boolean {
       //this.data.get('received') is deprecated since 4.0.x
-      return this.data.get('mark', MessageMark.pending) >= MessageMark.received || !!this.data.get('received');
+      return (
+         this.data.get('mark', MessageMark.pending) >= MessageMark.received ||
+         !!this.data.get('received')
+      );
    }
 
    public displayed() {
@@ -277,7 +338,9 @@ export default class Message implements IIdentifiable, IMessage {
    }
 
    public isDisplayed(): boolean {
-      return this.data.get('mark', MessageMark.pending) >= MessageMark.displayed;
+      return (
+         this.data.get('mark', MessageMark.pending) >= MessageMark.displayed
+      );
    }
 
    public acknowledged() {
@@ -285,7 +348,9 @@ export default class Message implements IIdentifiable, IMessage {
    }
 
    public isAcknowledged(): boolean {
-      return this.data.get('mark', MessageMark.pending) >= MessageMark.acknowledged;
+      return (
+         this.data.get('mark', MessageMark.pending) >= MessageMark.acknowledged
+      );
    }
 
    public isForwarded(): boolean {
@@ -309,7 +374,7 @@ export default class Message implements IIdentifiable, IMessage {
    }
 
    public setDirection(direction: DIRECTION) {
-      this.data.set('direction', direction)
+      this.data.set('direction', direction);
    }
 
    public setPlaintextMessage(plaintextMessage: string) {
@@ -328,16 +393,26 @@ export default class Message implements IIdentifiable, IMessage {
       let body = this.getPlaintextMessage();
 
       body = Utils.escapeHTML(body);
-      body = await Message.formatText(body, this.getDirection(), this.getPeer(), this.getSender().name);
+      body = await Message.formatText(
+         body,
+         this.getDirection(),
+         this.getPeer(),
+         this.getSender().name
+      );
 
       return `<p dir="auto">${body}</p>`;
    }
 
-   public getPlaintextEmoticonMessage(emotions: 'unicode'|'image' = 'image'): string {
+   public getPlaintextEmoticonMessage(
+      emotions: 'unicode' | 'image' = 'image'
+   ): string {
       let body = this.getPlaintextMessage();
 
       body = Utils.escapeHTML(body);
-      body = emotions === 'unicode' ? Emoticons.toUnicode(body) : Emoticons.toImage(body);
+      body =
+         emotions === 'unicode'
+            ? Emoticons.toUnicode(body)
+            : Emoticons.toImage(body);
 
       return body;
    }
@@ -356,15 +431,21 @@ export default class Message implements IIdentifiable, IMessage {
 }
 
 function convertUrlToLink(text: string) {
-   return text.replace(CONST.REGEX.URL, function(url) {
-      let href = (url.match(/^https?:\/\//i)) ? url : 'http://' + url;
+   return text.replace(CONST.REGEX.URL, function (url) {
+      let href = url.match(/^https?:\/\//i) ? url : 'http://' + url;
 
-      return '<a href="' + href + '" target="_blank" rel="noopener noreferrer">' + url + '</a>';
+      return (
+         '<a href="' +
+         href +
+         '" target="_blank" rel="noopener noreferrer">' +
+         url +
+         '</a>'
+      );
    });
 }
 
 function convertEmailToLink(text: string) {
-   return text.replace(ATREGEX, function(str, protocol, jid, action) {
+   return text.replace(ATREGEX, function (str, protocol, jid, action) {
       if (protocol === 'xmpp:') {
          if (typeof action === 'string') {
             jid += action;
@@ -378,19 +459,28 @@ function convertEmailToLink(text: string) {
 }
 
 function convertGeoToLink(text: string) {
-   return text.replace(CONST.REGEX.GEOURI, (url) => {
+   return text.replace(CONST.REGEX.GEOURI, url => {
       return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-   })
+   });
 }
 
 function markQuotation(text: string) {
-   return text.split(/(?:\n|\r\n|\r)/).map(line => {
-      return line.indexOf('&gt;') === 0 ? '<span class="jsxc-quote">' + line.replace(/^&gt; ?/, '') + '</span>' : line;
-   }).join('\n');
+   return text
+      .split(/(?:\n|\r\n|\r)/)
+      .map(line => {
+         return line.indexOf('&gt;') === 0
+            ? '<span class="jsxc-quote">' +
+                 line.replace(/^&gt; ?/, '') +
+                 '</span>'
+            : line;
+      })
+      .join('\n');
 }
 
 function replaceLineBreaks(text: string) {
-   return text.replace(/(\r\n|\r|\n){2}/g, '</p><p dir="auto">').replace(/(\r\n|\r|\n)/g, '<br/>');
+   return text
+      .replace(/(\r\n|\r|\n){2}/g, '</p><p dir="auto">')
+      .replace(/(\r\n|\r|\n)/g, '<br/>');
 }
 
 Message.addFormatter(convertUrlToLink);

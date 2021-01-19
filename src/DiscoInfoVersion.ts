@@ -1,14 +1,20 @@
 import Form from '@connection/Form';
 import FormField from '@connection/FormField';
 import { IIdentity } from './DiscoInfo.interface';
-import * as sha1 from 'sha1'
+import * as sha1 from 'sha1';
 
 export default class DiscoInfoVersion {
-   public static generate(identities: IIdentity[], features: string[], forms: Form[] = []): string {
+   public static generate(
+      identities: IIdentity[],
+      features: string[],
+      forms: Form[] = []
+   ): string {
       let version = '';
 
       identities = identities.sort(DiscoInfoVersion.sortIdentities);
-      features = features.sort().filter((value, index, source) => source.indexOf(value) === index);
+      features = features
+         .sort()
+         .filter((value, index, source) => source.indexOf(value) === index);
       forms = forms.sort(DiscoInfoVersion.sortForms);
 
       for (let identity of identities) {

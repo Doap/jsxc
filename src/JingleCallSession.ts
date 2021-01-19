@@ -1,13 +1,12 @@
-import Log from './util/Log'
-import JingleHandler from './connection/JingleHandler'
-import UserMedia from './UserMedia'
-import Translation from './util/Translation'
-import Notification from './Notification'
+import Log from './util/Log';
+import JingleHandler from './connection/JingleHandler';
+import UserMedia from './UserMedia';
+import Translation from './util/Translation';
+import Notification from './Notification';
 import JingleMediaSession from './JingleMediaSession';
-import { SOUNDS } from './CONST'
+import { SOUNDS } from './CONST';
 
 export default class JingleCallSession extends JingleMediaSession {
-
    public onOnceIncoming() {
       Notification.notify({
          title: Translation.t('Incoming_call'),
@@ -45,32 +44,33 @@ export default class JingleCallSession extends JingleMediaSession {
          }),
          new Promise((resolve, reject) => {
             this.on('terminated', () => {
-               reject('aborted')
+               reject('aborted');
             });
 
             this.on('aborted', () => {
-               reject('aborted')
+               reject('aborted');
             });
+         }),
+      ])
+         .then((stream: MediaStream) => {
+            videoDialog.addSession(this);
+            videoDialog.showVideoWindow(stream);
+
+            this.session.addStream(stream);
+            this.session.accept();
          })
-      ]).then((stream: MediaStream) => {
-         videoDialog.addSession(this);
-         videoDialog.showVideoWindow(stream);
+         .catch(reason => {
+            //@TODO hide user media request overlay
 
-         this.session.addStream(stream);
-         this.session.accept();
-      }).catch((reason) => {
+            //@TODO post reason to chat window
+            if (reason !== 'aborted') {
+               if (reason !== 'decline') {
+                  Log.warn('Error on incoming call', reason);
+               }
 
-         //@TODO hide user media request overlay
-
-         //@TODO post reason to chat window
-         if (reason !== 'aborted') {
-            if (reason !== 'decline') {
-               Log.warn('Error on incoming call', reason);
+               this.session.decline();
             }
-
-            this.session.decline();
-         }
-      });
+         });
    }
 
    public getMediaRequest(): ('audio' | 'video')[] {
@@ -78,11 +78,14 @@ export default class JingleCallSession extends JingleMediaSession {
       let contents = this.session.pc.remoteDescription.contents;
 
       for (let content of contents) {
-         if (content.senders === 'both' && ['audio', 'video'].indexOf(content.application.media) > -1) {
+         if (
+            content.senders === 'both' &&
+            ['audio', 'video'].indexOf(content.application.media) > -1
+         ) {
             mediaRequested.push(content.application.media);
          }
       }
 
-      return mediaRequested
+      return mediaRequested;
    }
 }

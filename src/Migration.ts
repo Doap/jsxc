@@ -37,7 +37,12 @@ export default class Migration {
          let matches = key.match(/^jsxc:([^:]+):key$/);
 
          if (matches) {
-            let newKey = this.storage.generateKey(matches[1], 'plugin', 'otr', 'key');
+            let newKey = this.storage.generateKey(
+               matches[1],
+               'plugin',
+               'otr',
+               'key'
+            );
 
             this.storage.setItem(newKey, backend.getItem(key));
          }

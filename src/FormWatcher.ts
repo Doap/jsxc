@@ -1,19 +1,22 @@
-import Log from './util/Log'
-import * as jsxc from './api/v1/index'
+import Log from './util/Log';
+import * as jsxc from './api/v1/index';
 import Client from './Client';
 
 export interface ISettings {
-   disabled?: boolean,
+   disabled?: boolean;
    xmpp?: {
-      url?: string,
-      node?: string,
-      domain?: string,
-      password?: string,
-      resource?: string,
-   }
+      url?: string;
+      node?: string;
+      domain?: string;
+      password?: string;
+      resource?: string;
+   };
 }
 
-export type SettingsCallback = (username: string, password: string) => Promise<ISettings>;
+export type SettingsCallback = (
+   username: string,
+   password: string
+) => Promise<ISettings>;
 
 export function usernameToJabberId(username: string, settings: ISettings) {
    let jid: string;
@@ -41,22 +44,34 @@ export default class FormWatcher {
    private passwordElement: JQuery;
    private settingsCallback: SettingsCallback;
 
-   constructor(formElement: JQuery, usernameElement: JQuery, passwordElement: JQuery, settingsCallback?: SettingsCallback) {
+   constructor(
+      formElement: JQuery,
+      usernameElement: JQuery,
+      passwordElement: JQuery,
+      settingsCallback?: SettingsCallback
+   ) {
       this.formElement = formElement;
       this.usernameElement = usernameElement;
       this.passwordElement = passwordElement;
-      this.settingsCallback = settingsCallback || Client.getOption('loadConnectionOptions');
+      this.settingsCallback =
+         settingsCallback || Client.getOption('loadConnectionOptions');
 
       if (formElement.length !== 1) {
-         throw new Error(`Found ${formElement.length} form elements. I need exactly one.`);
+         throw new Error(
+            `Found ${formElement.length} form elements. I need exactly one.`
+         );
       }
 
       if (usernameElement.length !== 1) {
-         throw new Error(`Found ${usernameElement.length} username elements. I need exactly one.`);
+         throw new Error(
+            `Found ${usernameElement.length} username elements. I need exactly one.`
+         );
       }
 
       if (passwordElement.length !== 1) {
-         throw new Error(`Found ${passwordElement.length} password elements. I need exactly one.`);
+         throw new Error(
+            `Found ${passwordElement.length} password elements. I need exactly one.`
+         );
       }
 
       if (typeof this.settingsCallback !== 'function') {
@@ -68,34 +83,36 @@ export default class FormWatcher {
 
    private prepareForm() {
       let formElement = this.formElement;
-      let events = (<any> $)._data(formElement.get(0), 'events') || {
-         submit: []
+      let events = (<any>$)._data(formElement.get(0), 'events') || {
+         submit: [],
       };
       let submitEvents = [].concat(events.submit);
 
       formElement.data('submits', submitEvents);
       formElement.off('submit');
 
-      formElement.submit((ev) => {
+      formElement.submit(ev => {
          ev.preventDefault();
 
          this.disableForm();
 
-         this.onFormSubmit().then(() => {
-            this.submitForm();
-         }).catch((err) => {
-            Log.warn(err);
+         this.onFormSubmit()
+            .then(() => {
+               this.submitForm();
+            })
+            .catch(err => {
+               Log.warn(err);
 
-            this.submitForm();
-         });
+               this.submitForm();
+            });
       });
 
       Log.debug('Form watcher armed');
    }
 
    private async onFormSubmit() {
-      let username = <string> this.usernameElement.val();
-      let password = <string> this.passwordElement.val();
+      let username = <string>this.usernameElement.val();
+      let password = <string>this.passwordElement.val();
 
       let settings = await this.getSettings(username, password);
 
@@ -125,13 +142,13 @@ export default class FormWatcher {
          return Promise.resolve({});
       }
 
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
          let returnPromise = this.settingsCallback(username, password);
 
          if (returnPromise && typeof returnPromise.then === 'function') {
             resolve(returnPromise);
          } else {
-            throw new Error('The settings callback isn\'t returning a promise');
+            throw new Error("The settings callback isn't returning a promise");
          }
       });
    }
@@ -143,7 +160,7 @@ export default class FormWatcher {
 
       // Attach original events
       let submitEvents = formElement.data('submits') || [];
-      submitEvents.forEach((handler) => {
+      submitEvents.forEach(handler => {
          formElement.submit(handler);
       });
 
@@ -151,7 +168,10 @@ export default class FormWatcher {
 
       if (formElement.find('#submit').length > 0) {
          formElement.find('#submit').click();
-      } else if (formElement.get(0) && typeof (<HTMLFormElement> formElement.get(0)).submit === 'function') {
+      } else if (
+         formElement.get(0) &&
+         typeof (<HTMLFormElement>formElement.get(0)).submit === 'function'
+      ) {
          formElement.submit();
       } else if (formElement.find('[type="submit"]').length > 0) {
          formElement.find('[type="submit"]').click();
@@ -163,7 +183,7 @@ export default class FormWatcher {
    private disableForm() {
       let formElement = this.formElement;
 
-      formElement.find(':input').each(function() {
+      formElement.find(':input').each(function () {
          let inputElement = $(this);
 
          if (inputElement.not(':disabled')) {
@@ -176,6 +196,9 @@ export default class FormWatcher {
    private enableForm() {
       let formElement = this.formElement;
 
-      formElement.find('.jsxc-disabled-during-login').removeClass('jsxc-disabled-during-login').removeAttr('disabled');
+      formElement
+         .find('.jsxc-disabled-during-login')
+         .removeClass('jsxc-disabled-during-login')
+         .removeAttr('disabled');
    }
 }

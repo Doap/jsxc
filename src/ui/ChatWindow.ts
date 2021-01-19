@@ -1,32 +1,36 @@
-import Log from '../util/Log'
-import Contact from '../Contact'
-import Menu from './util/Menu'
-import Message from '../Message'
-import { IMessage } from '../Message.interface'
-import Client from '../Client'
-import Account from '../Account'
-import Emoticons from '../Emoticons'
-import AvatarSet from './AvatarSet'
-import { startCall } from './actions/call'
-import { Presence } from '../connection/AbstractConnection'
-import { EncryptionState } from '../plugin/AbstractPlugin'
-import ElementHandler from './util/ElementHandler'
-import ChatWindowMessage from './ChatWindowMessage'
-import Transcript from '../Transcript'
-import FileTransferHandler from './ChatWindowFileTransferHandler'
-import Attachment from '../Attachment'
+import Log from '../util/Log';
+import Contact from '../Contact';
+import Menu from './util/Menu';
+import Message from '../Message';
+import { IMessage } from '../Message.interface';
+import Client from '../Client';
+import Account from '../Account';
+import Emoticons from '../Emoticons';
+import AvatarSet from './AvatarSet';
+import { startCall } from './actions/call';
+import { Presence } from '../connection/AbstractConnection';
+import { EncryptionState } from '../plugin/AbstractPlugin';
+import ElementHandler from './util/ElementHandler';
+import ChatWindowMessage from './ChatWindowMessage';
+import Transcript from '../Transcript';
+import FileTransferHandler from './ChatWindowFileTransferHandler';
+import Attachment from '../Attachment';
 import { IJID } from '@src/JID.interface';
 import { JINGLE_FEATURES } from '@src/JingleAbstractSession';
 import Location from '@util/Location';
 import interact from 'interactjs';
-import Translation from '../util/Translation'
+import Translation from '../util/Translation';
 
 let chatWindowTemplate = require('../../template/chatWindow.hbs');
 
 const ENTER_KEY = 13;
 const ESC_KEY = 27;
 
-export enum State { Open, Minimized, Closed };
+export enum State {
+   Open,
+   Minimized,
+   Closed,
+}
 
 export default class ChatWindow {
    protected element: JQuery<HTMLElement>;
@@ -43,7 +47,7 @@ export default class ChatWindow {
 
    private readonly READ_DELAY = 2000;
 
-   private chatWindowMessages: {[id: string]: ChatWindowMessage} = {};
+   private chatWindowMessages: { [id: string]: ChatWindowMessage } = {};
 
    private attachmentDeposition: Attachment;
 
@@ -56,14 +60,18 @@ export default class ChatWindow {
          accountUid: this.getAccount().getUid(),
          contactId: contact.getId(),
          contactJid: contact.getJid().bare,
-         name: contact.getName()
+         name: contact.getName(),
       });
       this.element = $(template);
       this.inputElement = this.element.find('.jsxc-message-input');
 
       Menu.init(this.element.find('.jsxc-menu'));
-      this.settingsMenu = this.element.find('.jsxc-menu-settings').data('object');
-      this.encryptionMenu = this.element.find('.jsxc-menu.jsxc-transfer').data('object');
+      this.settingsMenu = this.element
+         .find('.jsxc-menu-settings')
+         .data('object');
+      this.encryptionMenu = this.element
+         .find('.jsxc-menu.jsxc-transfer')
+         .data('object');
 
       this.initResizableWindow();
       this.initEmoticonMenu();
@@ -74,7 +82,9 @@ export default class ChatWindow {
 
       new FileTransferHandler(this);
 
-      this.element.find('.jsxc-window').css('bottom', -1 * this.element.find('.jsxc-window-fade').height());
+      this.element
+         .find('.jsxc-window')
+         .css('bottom', -1 * this.element.find('.jsxc-window-fade').height());
 
       let avatar = AvatarSet.get(contact);
       avatar.addElement(this.element.find('.jsxc-bar--window .jsxc-avatar'));
@@ -152,9 +162,9 @@ export default class ChatWindow {
       if (!element.hasClass('jsxc-highlight')) {
          element.addClass('jsxc-highlight');
 
-         setTimeout(function() {
+         setTimeout(function () {
             element.removeClass('jsxc-highlight');
-         }, this.HIGHTLIGHT_DURATION)
+         }, this.HIGHTLIGHT_DURATION);
       }
    }
 
@@ -170,7 +180,11 @@ export default class ChatWindow {
    }
 
    public postMessage(message: IMessage): ChatWindowMessage {
-      if (message.getDirection() === Message.DIRECTION.IN && this.inputElement.is(':focus') && Client.isVisible()) {
+      if (
+         message.getDirection() === Message.DIRECTION.IN &&
+         this.inputElement.is(':focus') &&
+         Client.isVisible()
+      ) {
          message.read();
       }
 
@@ -190,9 +204,13 @@ export default class ChatWindow {
       return chatWindowMessage;
    }
 
-   public addActionEntry(className: string, cb: (ev) => void, child?: JQuery<HTMLElement>) {
+   public addActionEntry(
+      className: string,
+      cb: (ev) => void,
+      child?: JQuery<HTMLElement>
+   ) {
       let element = $('<div>');
-      element.addClass('jsxc-bar__action-entry')
+      element.addClass('jsxc-bar__action-entry');
       element.addClass(className);
       element.on('click', cb);
 
@@ -200,7 +218,9 @@ export default class ChatWindow {
          element.append(child);
       }
 
-      this.element.find('.jsxc-bar__action-entry.jsxc-js-close').before(element);
+      this.element
+         .find('.jsxc-bar__action-entry.jsxc-js-close')
+         .before(element);
    }
 
    public addMenuEntry(className: string, label: string, cb: (ev) => void) {
@@ -238,12 +258,16 @@ export default class ChatWindow {
    }
 
    public showOverlay() {
-      this.getDom().find('.jsxc-window__overlay').addClass('jsxc-window__overlay--show');
+      this.getDom()
+         .find('.jsxc-window__overlay')
+         .addClass('jsxc-window__overlay--show');
    }
 
    public hideOverlay() {
       this.getDom().find('.jsxc-window__overlay__content').empty();
-      this.getDom().find('.jsxc-window__overlay').removeClass('jsxc-window__overlay--show');
+      this.getDom()
+         .find('.jsxc-window__overlay')
+         .removeClass('jsxc-window__overlay--show');
    }
 
    protected initDroppable() {
@@ -252,13 +276,13 @@ export default class ChatWindow {
 
       windowElement.addClass('jsxc-droppable');
 
-      windowElement.on('dragenter', (ev) => {
+      windowElement.on('dragenter', ev => {
          enterCounter++;
 
          windowElement.addClass('jsxc-dragover');
       });
 
-      windowElement.on('dragleave', (ev) => {
+      windowElement.on('dragleave', ev => {
          enterCounter--;
 
          if (enterCounter === 0) {
@@ -266,10 +290,10 @@ export default class ChatWindow {
          }
       });
 
-      windowElement.on('dragover', (ev) => {
+      windowElement.on('dragover', ev => {
          ev.preventDefault();
 
-         (<any> ev.originalEvent).dataTransfer.dropEffect = 'copy';
+         (<any>ev.originalEvent).dataTransfer.dropEffect = 'copy';
       });
    }
 
@@ -284,81 +308,79 @@ export default class ChatWindow {
 
       elementHandler.add(
          this.element.find('.jsxc-fingerprints')[0],
-         function() {
+         function () {
             // showFingerprintsDialog(contact);
          }
       );
 
-      elementHandler.add(
-         this.element.find('.jsxc-bar--window')[0],
-         () => {
-            this.toggle();
-         }
-      );
+      elementHandler.add(this.element.find('.jsxc-bar--window')[0], () => {
+         this.toggle();
+      });
 
-      elementHandler.add(
-         this.element.find('.jsxc-js-close')[0],
-         (ev) => {
-            ev.stopPropagation();
+      elementHandler.add(this.element.find('.jsxc-js-close')[0], ev => {
+         ev.stopPropagation();
 
-            this.getController().close();
-         }
-      );
+         this.getController().close();
+      });
 
-      elementHandler.add(
-         this.element.find('.jsxc-clear')[0],
-         () => {
-            this.clear();
-         }
-      );
+      elementHandler.add(this.element.find('.jsxc-clear')[0], () => {
+         this.clear();
+      });
 
       if (this.contact.isChat()) {
          elementHandler.add(
             this.element.find('.jsxc-video')[0],
-            (ev) => {
+            ev => {
                ev.stopPropagation();
 
                startCall(contact, this.getAccount());
-            }, JINGLE_FEATURES.video
+            },
+            JINGLE_FEATURES.video
          );
 
          elementHandler.add(
             this.element.find('.jsxc-audio')[0],
-            (ev) => {
+            ev => {
                ev.stopPropagation();
 
                startCall(contact, this.getAccount(), 'audio');
-            }, JINGLE_FEATURES.audio
+            },
+            JINGLE_FEATURES.audio
          );
 
          elementHandler.add(
             this.element.find('.jsxc-share-screen')[0],
-            (ev) => {
+            ev => {
                ev.stopPropagation();
 
                startCall(contact, this.getAccount(), 'screen');
-            }, JINGLE_FEATURES.screen
+            },
+            JINGLE_FEATURES.screen
          );
       }
 
-      elementHandler.add(
-         this.element.find('.jsxc-send-location')[0],
-         (ev) => {
-            Location.getCurrentLocationAsGeoUri().then(uri => {
+      elementHandler.add(this.element.find('.jsxc-send-location')[0], ev => {
+         Location.getCurrentLocationAsGeoUri()
+            .then(uri => {
                this.sendOutgoingMessage(uri);
-            }).catch(err => {
+            })
+            .catch(err => {
                Log.warn('Could not get current location', err);
 
-               this.getContact().addSystemMessage('Could not get your current location.');
+               this.getContact().addSystemMessage(
+                  'Could not get your current location.'
+               );
             });
-         }
-      );
+      });
 
       elementHandler.add(
          this.element.find('.jsxc-message-area')[0],
-         function() {
+         function () {
             // check if user clicks element or selects text
-            if (typeof getSelection === 'function' && !getSelection().toString()) {
+            if (
+               typeof getSelection === 'function' &&
+               !getSelection().toString()
+            ) {
                self.inputElement.focus();
             }
          }
@@ -374,14 +396,16 @@ export default class ChatWindow {
       inputElement.focus(this.onInputFocus);
       inputElement.blur(this.onInputBlur);
 
-      inputElement.mouseenter(function() {
-         $('#jsxc-window-list').data('isHover', true);
-      }).mouseleave(function() {
-         $('#jsxc-window-list').data('isHover', false);
-      });
+      inputElement
+         .mouseenter(function () {
+            $('#jsxc-window-list').data('isHover', true);
+         })
+         .mouseleave(function () {
+            $('#jsxc-window-list').data('isHover', false);
+         });
    }
 
-   private onInputKeyUp = (ev) => {
+   private onInputKeyUp = ev => {
       ev.stopPropagation();
       // let message = <string> $(ev.target).val();
 
@@ -402,34 +426,43 @@ export default class ChatWindow {
          // let lastSpaceIndex = message.lastIndexOf(' ') + 1;
          // let lastNewlineIndex = message.lastIndexOf('\n') + 1;
          // let lastWord = message.slice(Math.max(lastSpaceIndex, lastNewlineIndex), selectionStart);
-
          //@TODO auto complete
       }
-   }
+   };
 
-   private onInputKeyPress = (ev) => {
+   private onInputKeyPress = ev => {
       ev.stopPropagation();
 
-      let message: string = <string> $(ev.target).val();
+      let message: string = <string>$(ev.target).val();
 
-      if (ev.which !== ENTER_KEY || ev.shiftKey || (!message && !this.attachmentDeposition)) {
+      if (
+         ev.which !== ENTER_KEY ||
+         ev.shiftKey ||
+         (!message && !this.attachmentDeposition)
+      ) {
          return;
       }
 
-      this.getAccount().getCommandRepository().execute(message, this.contact).then(result => {
-         if (result === false) {
-            this.sendOutgoingMessage(message);
-         }
-      }).catch(err => {
-         this.contact.addSystemMessage(err.message || Translation.t('Command_failed'));
-      });
+      this.getAccount()
+         .getCommandRepository()
+         .execute(message, this.contact)
+         .then(result => {
+            if (result === false) {
+               this.sendOutgoingMessage(message);
+            }
+         })
+         .catch(err => {
+            this.contact.addSystemMessage(
+               err.message || Translation.t('Command_failed')
+            );
+         });
 
       $(ev.target).val('');
 
       this.resizeInputArea();
 
       ev.preventDefault();
-   }
+   };
 
    private onInputFocus = () => {
       if (this.inputBlurTimeout) {
@@ -441,17 +474,17 @@ export default class ChatWindow {
       }, this.READ_DELAY);
 
       this.resizeInputArea();
-   }
+   };
 
-   private onInputBlur = (ev) => {
+   private onInputBlur = ev => {
       if (this.readTimeout) {
          clearTimeout(this.readTimeout);
       }
 
-      this.inputBlurTimeout = window.setTimeout(function() {
+      this.inputBlurTimeout = window.setTimeout(function () {
          $(ev.target).css('height', '');
       }, this.INPUT_RESIZE_DELAY);
-   }
+   };
 
    private sendOutgoingMessage(messageString: string) {
       let message = new Message({
@@ -469,14 +502,23 @@ export default class ChatWindow {
 
       let pipe = this.getAccount().getPipe('preSendMessage');
 
-      pipe.run(this.contact, message).then(([contact, message]) => {
-         this.getAccount().getConnection().sendMessage(message);
-      }).catch(err => {
-         Log.warn('Error during preSendMessage pipe', err);
-      });
+      pipe
+         .run(this.contact, message)
+         .then(([contact, message]) => {
+            this.getAccount().getConnection().sendMessage(message);
+         })
+         .catch(err => {
+            Log.warn('Error during preSendMessage pipe', err);
+         });
 
-      if (messageString === '?' && Client.getOption('theAnswerToAnything') !== false) {
-         if (typeof Client.getOption('theAnswerToAnything') === 'undefined' || (Math.random() * 100 % 42) < 1) {
+      if (
+         messageString === '?' &&
+         Client.getOption('theAnswerToAnything') !== false
+      ) {
+         if (
+            typeof Client.getOption('theAnswerToAnything') === 'undefined' ||
+            (Math.random() * 100) % 42 < 1
+         ) {
             Client.setOption('theAnswerToAnything', true);
 
             this.getContact().addSystemMessage('42');
@@ -490,10 +532,12 @@ export default class ChatWindow {
       } else {
          this.getController().minimize();
       }
-   }
+   };
 
-   private updateEncryptionState = (encryptionState) => {
-      Log.debug('update window encryption state to ' + EncryptionState[encryptionState]);
+   private updateEncryptionState = encryptionState => {
+      Log.debug(
+         'update window encryption state to ' + EncryptionState[encryptionState]
+      );
 
       let transferElement = this.encryptionMenu.getElement();
 
@@ -514,25 +558,32 @@ export default class ChatWindow {
          default:
             Log.warn('Unknown encryption state');
       }
-   }
+   };
 
    private resizeInputArea() {
       let inputElement = this.inputElement;
 
       if (!inputElement.data('originalScrollHeight')) {
-         inputElement.data('originalScrollHeight', inputElement[0].scrollHeight);
+         inputElement.data(
+            'originalScrollHeight',
+            inputElement[0].scrollHeight
+         );
       }
 
       if (inputElement.val()) {
          inputElement.parent().addClass('jsxc-contains-val');
       } else {
-         inputElement.parent().removeClass('jsxc-contains-val')
+         inputElement.parent().removeClass('jsxc-contains-val');
       }
 
-      this.element.removeClass('jsxc-large-send-area')
+      this.element.removeClass('jsxc-large-send-area');
 
-      if (inputElement.data('originalScrollHeight') < inputElement[0].scrollHeight && inputElement.val()) {
-         this.element.addClass('jsxc-large-send-area')
+      if (
+         inputElement.data('originalScrollHeight') <
+            inputElement[0].scrollHeight &&
+         inputElement.val()
+      ) {
+         this.element.addClass('jsxc-large-send-area');
       }
    }
 
@@ -540,30 +591,36 @@ export default class ChatWindow {
       let element = this.element;
       let fadeElement = element.find('.jsxc-window-fade');
 
-      interact(fadeElement.get(0)).resizable({
-         edges: {
-            top: true,
-            left: true,
-            bottom: false,
-            right: false,
-         },
-      }).on('resizestart', () => {
-         fadeElement.addClass('jsxc-window-fade--resizing');
-      }).on('resizemove', ev => {
-         let barHeight = element.find('.jsxc-bar--window').height();
-         let windowHeight = $(window).height();
+      interact(fadeElement.get(0))
+         .resizable({
+            edges: {
+               top: true,
+               left: true,
+               bottom: false,
+               right: false,
+            },
+         })
+         .on('resizestart', () => {
+            fadeElement.addClass('jsxc-window-fade--resizing');
+         })
+         .on('resizemove', ev => {
+            let barHeight = element.find('.jsxc-bar--window').height();
+            let windowHeight = $(window).height();
 
-         let newHeight = Math.min(windowHeight - barHeight, ev.rect.height);
+            let newHeight = Math.min(windowHeight - barHeight, ev.rect.height);
 
-         fadeElement.css({
-            width: ev.rect.width + 'px',
-            height: newHeight + 'px',
+            fadeElement.css({
+               width: ev.rect.width + 'px',
+               height: newHeight + 'px',
+            });
+
+            element
+               .find('.jsxc-bar--window')
+               .css('width', fadeElement.width() + 'px');
+         })
+         .on('resizeend', () => {
+            fadeElement.removeClass('jsxc-window-fade--resizing');
          });
-
-         element.find('.jsxc-bar--window').css('width',  fadeElement.width() + 'px');
-      }).on('resizeend', () => {
-         fadeElement.removeClass('jsxc-window-fade--resizing');
-      });
 
       $(window).on('resize', () => {
          fadeElement.css({
@@ -586,16 +643,19 @@ export default class ChatWindow {
          li.find('div').attr('title', emoticon);
          li.click(() => {
             let inputElement = this.element.find('.jsxc-message-input');
-            let inputValue = <string> inputElement.val() || '';
-            let selectionStart = (<HTMLInputElement> inputElement[0]).selectionStart;
-            let selectionEnd = (<HTMLInputElement> inputElement[0]).selectionEnd;
+            let inputValue = <string>inputElement.val() || '';
+            let selectionStart = (<HTMLInputElement>inputElement[0])
+               .selectionStart;
+            let selectionEnd = (<HTMLInputElement>inputElement[0]).selectionEnd;
             let inputStart = inputValue.slice(0, selectionStart);
             let inputEnd = inputValue.slice(selectionEnd);
 
             let newValue = inputStart;
-            newValue += (inputStart.length && inputStart.slice(-1) !== ' ') ? ' ' : '';
+            newValue +=
+               inputStart.length && inputStart.slice(-1) !== ' ' ? ' ' : '';
             newValue += emoticon;
-            newValue += (inputEnd.length && inputEnd.slice(0, 1) !== ' ') ? ' ' : '';
+            newValue +=
+               inputEnd.length && inputEnd.slice(0, 1) !== ' ' ? ' ' : '';
             newValue += inputEnd;
 
             inputElement.val(newValue);
@@ -615,7 +675,9 @@ export default class ChatWindow {
 
       let chatWindowMessage = this.getChatWindowMessage(firstMessage);
 
-      this.element.find('.jsxc-message-area').append(chatWindowMessage.getElement());
+      this.element
+         .find('.jsxc-message-area')
+         .append(chatWindowMessage.getElement());
 
       chatWindowMessage.restoreNextMessage();
    }
@@ -629,7 +691,7 @@ export default class ChatWindow {
    private registerHooks() {
       this.contact.registerHook('encryptionState', this.updateEncryptionState);
 
-      this.contact.registerHook('presence', (newPresence) => {
+      this.contact.registerHook('presence', newPresence => {
          this.element.attr('data-presence', Presence[newPresence]);
       });
 
@@ -637,11 +699,11 @@ export default class ChatWindow {
          this.element.attr('data-subscription', this.contact.getSubscription());
       });
 
-      this.contact.registerHook('name', (newName) => {
+      this.contact.registerHook('name', newName => {
          this.element.find('.jsxc-bar__caption__primary').text(newName);
       });
 
-      this.getTranscript().registerHook('firstMessageId', (firstMessageId) => {
+      this.getTranscript().registerHook('firstMessageId', firstMessageId => {
          if (!firstMessageId) {
             return;
          }
@@ -669,7 +731,9 @@ export default class ChatWindow {
 
          let encryptionPluginName = this.contact.getEncryptionPluginId();
 
-         pluginRepository.getEncryptionPlugin(encryptionPluginName).toggleTransfer(this.contact);
+         pluginRepository
+            .getEncryptionPlugin(encryptionPluginName)
+            .toggleTransfer(this.contact);
 
          ev.preventDefault();
          ev.stopPropagation();
@@ -680,19 +744,22 @@ export default class ChatWindow {
       let menu = this.encryptionMenu;
 
       for (let plugin of encryptionPlugins) {
-         let label = (<any> plugin.constructor).getName().toUpperCase();
+         let label = (<any>plugin.constructor).getName().toUpperCase();
 
          menu.addEntry(label, () => {
             let buttonElement = this.encryptionMenu.getButtonElement();
             buttonElement.addClass('jsxc-transfer--loading');
 
-            plugin.toggleTransfer(this.contact).catch(err => {
-               Log.warn('Toggle transfer error:', err);
+            plugin
+               .toggleTransfer(this.contact)
+               .catch(err => {
+                  Log.warn('Toggle transfer error:', err);
 
-               this.getContact().addSystemMessage(err.toString());
-            }).then(() => {
-               buttonElement.removeClass('jsxc-transfer--loading');
-            });
+                  this.getContact().addSystemMessage(err.toString());
+               })
+               .then(() => {
+                  buttonElement.removeClass('jsxc-transfer--loading');
+               });
          });
       }
 

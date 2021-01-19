@@ -1,7 +1,7 @@
-import AbstractService from './AbstractService'
-import * as NS from '../xmpp/namespace'
-import Form from '@connection/Form'
-import { IJID } from '@src/JID.interface'
+import AbstractService from './AbstractService';
+import * as NS from '../xmpp/namespace';
+import Form from '@connection/Form';
+import { IJID } from '@src/JID.interface';
 
 let baseNamespace = 'http://jabber.org/protocol/pubsub';
 
@@ -13,10 +13,19 @@ NS.register('PUBSUB_OWNER', baseNamespace + '#owner');
 NS.register('PUBSUB_AUTO_CREATE', baseNamespace + '#auto-create');
 NS.register('PUBSUB_PUBLISH_OPTIONS', baseNamespace + '#publish-options');
 NS.register('PUBSUB_NODE_CONFIG', baseNamespace + '#node_config');
-NS.register('PUBSUB_CREATE_AND_CONFIGURE', baseNamespace + '#create-and-configure');
-NS.register('PUBSUB_SUBSCRIBE_AUTHORIZATION', baseNamespace + '#subscribe_authorization');
+NS.register(
+   'PUBSUB_CREATE_AND_CONFIGURE',
+   baseNamespace + '#create-and-configure'
+);
+NS.register(
+   'PUBSUB_SUBSCRIBE_AUTHORIZATION',
+   baseNamespace + '#subscribe_authorization'
+);
 NS.register('PUBSUB_GET_PENDING', baseNamespace + '#get-pending');
-NS.register('PUBSUB_MANAGE_SUBSCRIPTIONS', baseNamespace + '#manage-subscriptions');
+NS.register(
+   'PUBSUB_MANAGE_SUBSCRIPTIONS',
+   baseNamespace + '#manage-subscriptions'
+);
 NS.register('PUBSUB_META_DATA', baseNamespace + '#meta-data');
 
 export default class PubSub extends AbstractService {
@@ -31,12 +40,14 @@ export default class PubSub extends AbstractService {
    public createNode(node: string, options?: Form): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'set'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB')
-      }).c('create', {
-         node
-      });
+         type: 'set',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB'),
+         })
+         .c('create', {
+            node,
+         });
 
       if (options) {
          iq.up().c('configure').cnode(options.toXML());
@@ -48,12 +59,14 @@ export default class PubSub extends AbstractService {
    public deleteNode(node: string): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'set'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB_OWNER')
-      }).c('delete', {
-         node
-      });
+         type: 'set',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB_OWNER'),
+         })
+         .c('delete', {
+            node,
+         });
 
       return this.sendIQ(iq);
    }
@@ -61,9 +74,9 @@ export default class PubSub extends AbstractService {
    public discoverNodes(): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'get'
+         type: 'get',
       }).c('query', {
-         xmlns: Strophe.NS.DISCO_ITEMS
+         xmlns: Strophe.NS.DISCO_ITEMS,
       });
 
       return this.sendIQ(iq);
@@ -72,12 +85,14 @@ export default class PubSub extends AbstractService {
    public getConfig(node): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'get'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB_OWNER')
-      }).c('configure', {
-         node
-      });
+         type: 'get',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB_OWNER'),
+         })
+         .c('configure', {
+            node,
+         });
 
       return this.sendIQ(iq);
    }
@@ -85,67 +100,94 @@ export default class PubSub extends AbstractService {
    public getDefaultNodeConfig(): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'get'
+         type: 'get',
       }).c('pubsub', {
-         xmlns: NS.get('PUBSUB_OWNER')
+         xmlns: NS.get('PUBSUB_OWNER'),
       });
       iq.c('default');
 
       return this.sendIQ(iq);
    }
 
-   public subscribe(node: string, eventCallback: (stanza: string) => boolean, options?: Form, barejid: boolean = false): Promise<Element> {
-      let jid = (barejid) ? this.jid.bare : this.jid.full;
+   public subscribe(
+      node: string,
+      eventCallback: (stanza: string) => boolean,
+      options?: Form,
+      barejid: boolean = false
+   ): Promise<Element> {
+      let jid = barejid ? this.jid.bare : this.jid.full;
 
       let iq = $iq({
          to: this.service,
-         type: 'set'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB')
-      }).c('subscribe', {
-         node,
-         jid
-      });
+         type: 'set',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB'),
+         })
+         .c('subscribe', {
+            node,
+            jid,
+         });
 
       if (options) {
          iq.up().c('options').cnode(options.toXML());
       }
 
       //@REVIEW probably not specific enough
-      this.connection.registerHandler(eventCallback, null, 'message', null, null, null);
+      this.connection.registerHandler(
+         eventCallback,
+         null,
+         'message',
+         null,
+         null,
+         null
+      );
 
       return this.sendIQ(iq);
    }
 
-   public unsubscribe(node: string, jid: IJID, subId?: string): Promise<Element> {
+   public unsubscribe(
+      node: string,
+      jid: IJID,
+      subId?: string
+   ): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'set'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB')
-      }).c('unsubscribe', {
-         node,
-         jid: jid.full
-      });
+         type: 'set',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB'),
+         })
+         .c('unsubscribe', {
+            node,
+            jid: jid.full,
+         });
 
       if (subId) {
          iq.attrs({
-            subid: subId
+            subid: subId,
          });
       }
 
       return this.sendIQ(iq);
    }
 
-   public publish(node: string, item: Strophe.Builder, options?: Form): Promise<Element> {
+   public publish(
+      node: string,
+      item: Strophe.Builder,
+      options?: Form
+   ): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'set'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB')
-      }).c('publish', {
-         node
-      }).cnode(item.tree());
+         type: 'set',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB'),
+         })
+         .c('publish', {
+            node,
+         })
+         .cnode(item.tree());
 
       if (options) {
          iq.up().up().c('publish-options').cnode(options.toXML());
@@ -157,12 +199,14 @@ export default class PubSub extends AbstractService {
    public getAllItems(node: string): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'get'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB')
-      }).c('items', {
-         node
-      });
+         type: 'get',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB'),
+         })
+         .c('items', {
+            node,
+         });
 
       return this.sendIQ(iq);
    }
@@ -170,12 +214,14 @@ export default class PubSub extends AbstractService {
    public getAllItemsFrom(node: string, jid: IJID): Promise<Element> {
       let iq = $iq({
          to: jid.full,
-         type: 'get'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB')
-      }).c('items', {
-         node
-      });
+         type: 'get',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB'),
+         })
+         .c('items', {
+            node,
+         });
 
       return this.sendIQ(iq);
    }
@@ -183,10 +229,12 @@ export default class PubSub extends AbstractService {
    public getSubscriptions(): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'get'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB')
-      }).c('subscriptions');
+         type: 'get',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB'),
+         })
+         .c('subscriptions');
 
       return this.sendIQ(iq);
    }
@@ -194,12 +242,14 @@ export default class PubSub extends AbstractService {
    public getNodeSubscriptions(node: string): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'get'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB_OWNER')
-      }).c('subscriptions', {
-         node
-      });
+         type: 'get',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB_OWNER'),
+         })
+         .c('subscriptions', {
+            node,
+         });
 
       return this.sendIQ(iq);
    }
@@ -208,12 +258,14 @@ export default class PubSub extends AbstractService {
       let iq = $iq({
          to: this.service,
          type: 'get',
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB')
-      }).c('options', {
-         node,
-         jid: this.jid
-      });
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB'),
+         })
+         .c('options', {
+            node,
+            jid: this.jid,
+         });
 
       if (subId) {
          iq.attrs({ subid: subId });
@@ -233,7 +285,7 @@ export default class PubSub extends AbstractService {
 
       let iq = $iq({
          to: this.service,
-         type: 'get'
+         type: 'get',
       });
 
       iq.c('pubsub', xmlns).c('affiliations', attrs);
@@ -244,15 +296,18 @@ export default class PubSub extends AbstractService {
    public setAffiliation(node: string, jid, affiliation): Promise<Element> {
       let iq = $iq({
          to: this.service,
-         type: 'set'
-      }).c('pubsub', {
-         xmlns: NS.get('PUBSUB_OWNER')
-      }).c('affiliations', {
-         node
-      }).c('affiliation', {
-         jid,
-         affiliation
-      });
+         type: 'set',
+      })
+         .c('pubsub', {
+            xmlns: NS.get('PUBSUB_OWNER'),
+         })
+         .c('affiliations', {
+            node,
+         })
+         .c('affiliation', {
+            jid,
+            affiliation,
+         });
 
       return this.sendIQ(iq);
    }

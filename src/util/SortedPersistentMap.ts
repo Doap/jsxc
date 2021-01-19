@@ -1,10 +1,9 @@
-import IIdentifiable from '../Identifiable.interface'
-import Storage from '../Storage'
-import Log from '../util/Log'
-import InvalidParameterError from '../errors/InvalidParameterError'
+import IIdentifiable from '../Identifiable.interface';
+import Storage from '../Storage';
+import Log from '../util/Log';
+import InvalidParameterError from '../errors/InvalidParameterError';
 
 export default class SortedPersistentMap {
-
    private map = {};
 
    private list;
@@ -64,7 +63,8 @@ export default class SortedPersistentMap {
       this.save();
    }
 
-   public empty(callback) { //@REVIEW removeHook
+   public empty(callback) {
+      //@REVIEW removeHook
       this.list.forEach(id => {
          callback(id, this.map[id]);
       });
@@ -85,10 +85,12 @@ export default class SortedPersistentMap {
       } else if (typeof arguments[0].getId === 'function') {
          id = arguments[0].getId();
       } else {
-         throw new InvalidParameterError('I need to know which id do you want to remove');
+         throw new InvalidParameterError(
+            'I need to know which id do you want to remove'
+         );
       }
 
-      this.list = $.grep(this.list, function(i) {
+      this.list = $.grep(this.list, function (i) {
          return id !== i;
       });
 
@@ -97,16 +99,22 @@ export default class SortedPersistentMap {
       this.save();
    }
 
-   public registerHook(func: (newValue: any, oldValue: any, key: string) => void) {
+   public registerHook(
+      func: (newValue: any, oldValue: any, key: string) => void
+   ) {
       this.storage.registerHook(this.key, func);
    }
 
    //@REVIEW for init it is important that the push hook has a return value
-   public setPushHook(func: (newValue: any, oldValue: any, key: string) => void) {
+   public setPushHook(
+      func: (newValue: any, oldValue: any, key: string) => void
+   ) {
       this.pushHook = func;
    }
 
-   public setRemoveHook(func: (newValue: any, oldValue: any, key: string) => void) {
+   public setRemoveHook(
+      func: (newValue: any, oldValue: any, key: string) => void
+   ) {
       this.removeHook = func;
    }
 
@@ -130,7 +138,9 @@ export default class SortedPersistentMap {
          }
       }
 
-      let removeDiff: string[] = oldValue.filter(id => newValue.indexOf(id) < 0);
+      let removeDiff: string[] = oldValue.filter(
+         id => newValue.indexOf(id) < 0
+      );
 
       for (let value of removeDiff) {
          // call remove hook
@@ -142,8 +152,7 @@ export default class SortedPersistentMap {
       }
 
       this.list = newValue;
-
-   }
+   };
 
    private save() {
       this.initialized = true;

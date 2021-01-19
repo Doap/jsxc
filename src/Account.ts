@@ -1,27 +1,27 @@
-import Storage from './Storage'
-import { IConnection } from './connection/Connection.interface'
-import Connector from './connection/xmpp/Connector'
-import StorageConnection from './connection/storage/Connection'
-import JID from './JID'
-import Contact from './Contact'
-import { Presence } from './connection/AbstractConnection'
-import Client from './Client'
-import { NoticeManager } from './NoticeManager'
-import PluginRepository from './plugin/PluginRepository'
-import DiscoInfoRepository from './DiscoInfoRepository'
-import DiscoInfoChangeable from './DiscoInfoChangeable'
-import HookRepository from './util/HookRepository'
-import Options from './Options'
-import UUID from './util/UUID'
-import Pipe from './util/Pipe'
+import Storage from './Storage';
+import { IConnection } from './connection/Connection.interface';
+import Connector from './connection/xmpp/Connector';
+import StorageConnection from './connection/storage/Connection';
+import JID from './JID';
+import Contact from './Contact';
+import { Presence } from './connection/AbstractConnection';
+import Client from './Client';
+import { NoticeManager } from './NoticeManager';
+import PluginRepository from './plugin/PluginRepository';
+import DiscoInfoRepository from './DiscoInfoRepository';
+import DiscoInfoChangeable from './DiscoInfoChangeable';
+import HookRepository from './util/HookRepository';
+import Options from './Options';
+import UUID from './util/UUID';
+import Pipe from './util/Pipe';
 import ChatWindow from '@ui/ChatWindow';
 import { IJID } from './JID.interface';
 import { IContact } from './Contact.interface';
 import RosterContactProvider from './RosterContactProvider';
 import ContactManager from './ContactManager';
 import FallbackContactProvider from './FallbackContactProvider';
-import Log from '@util/Log'
-import CommandRepository from './CommandRepository'
+import Log from '@util/Log';
+import CommandRepository from './CommandRepository';
 
 type ConnectionCallback = (status: number, condition?: string) => void;
 
@@ -69,7 +69,9 @@ export default class Account {
          let jid = new JID(arguments[1]);
 
          // anonymous accounts start without node
-         this.uid = jid.node ? jid.bare : UUID.v4().slice(0, 8) + '=' + jid.domain;
+         this.uid = jid.node
+            ? jid.bare
+            : UUID.v4().slice(0, 8) + '=' + jid.domain;
          this.sessionId = UUID.v4();
 
          let oldSessionId = this.getStorage().getItem('sessionId');
@@ -84,7 +86,13 @@ export default class Account {
 
       this.options = new Options(this.getStorage());
 
-      this.connector = new Connector(this, arguments[0], arguments[1], arguments[2], arguments[3]);
+      this.connector = new Connector(
+         this,
+         arguments[0],
+         arguments[1],
+         arguments[2],
+         arguments[3]
+      );
       this.connection = new StorageConnection(this);
 
       if (arguments.length === 1) {
@@ -93,10 +101,16 @@ export default class Account {
 
       this.contact = new Contact(this, new JID(this.uid), this.uid);
 
-      let rosterContactProvider = new RosterContactProvider(this.getContactManager(), this);
+      let rosterContactProvider = new RosterContactProvider(
+         this.getContactManager(),
+         this
+      );
       this.getContactManager().registerContactProvider(rosterContactProvider);
 
-      let fallbackContactProvider = new FallbackContactProvider(this.getContactManager(), this);
+      let fallbackContactProvider = new FallbackContactProvider(
+         this.getContactManager(),
+         this
+      );
       this.getContactManager().registerContactProvider(fallbackContactProvider);
 
       let connectionCallback = this.getOption('connectionCallback');
@@ -130,38 +144,43 @@ export default class Account {
          Client.getPresenceController().setTargetPresence(Presence.online);
       }
 
-      return this.connector.connect().then(async ([status, connection]) => {
-         this.connection = connection;
+      return this.connector
+         .connect()
+         .then(async ([status, connection]) => {
+            this.connection = connection;
 
-         if (pause) {
-            connection.pause();
-         }
+            if (pause) {
+               connection.pause();
+            }
 
-         let storage = this.getSessionStorage();
+            let storage = this.getSessionStorage();
 
-         if (!storage.getItem('connection', 'created')) {
-            storage.setItem('connection', 'created', new Date());
-         }
+            if (!storage.getItem('connection', 'created')) {
+               storage.setItem('connection', 'created', new Date());
+            }
 
-         if (!storage.getItem('options', 'loaded')) {
-            let jid = this.connector.getJID();
-            await Options.load(jid.bare, this.connector.getPassword(), jid);
-            this.connector.clearPassword();
+            if (!storage.getItem('options', 'loaded')) {
+               let jid = this.connector.getJID();
+               await Options.load(jid.bare, this.connector.getPassword(), jid);
+               this.connector.clearPassword();
 
-            storage.setItem('options', 'loaded', true);
-         }
+               storage.setItem('options', 'loaded', true);
+            }
 
-         if (!pause) {
-            this.initConnection(status);
-         }
-      }).catch(err => {
-         if (Client.getAccountManager().getAccounts().length <= 1) {
-            Client.getPresenceController().setTargetPresence(Presence.offline)
-         }
+            if (!pause) {
+               this.initConnection(status);
+            }
+         })
+         .catch(err => {
+            if (Client.getAccountManager().getAccounts().length <= 1) {
+               Client.getPresenceController().setTargetPresence(
+                  Presence.offline
+               );
+            }
 
-         throw err;
-      });
-   }
+            throw err;
+         });
+   };
 
    private async initConnection(status): Promise<void> {
       let storage = this.getSessionStorage();
@@ -180,35 +199,45 @@ export default class Account {
 
    public triggerPresenceHook = (contact: IContact, presence, oldPresence) => {
       this.hookRepository.trigger('presence', contact, presence, oldPresence);
-   }
+   };
 
-   public registerPresenceHook = (func) => {
+   public registerPresenceHook = func => {
       this.hookRepository.registerHook('presence', func);
-   }
+   };
 
    public triggerConnectionHook = (status: number, condition?: string) => {
       this.hookRepository.trigger('connection', status, condition);
-   }
+   };
 
    public registerConnectionHook = (func: ConnectionCallback) => {
       this.hookRepository.registerHook('connection', func);
-   }
+   };
 
-   public triggerChatWindowInitializedHook = (chatWindow: ChatWindow, contact: Contact) => {
+   public triggerChatWindowInitializedHook = (
+      chatWindow: ChatWindow,
+      contact: Contact
+   ) => {
       this.hookRepository.trigger('chatWindowInitialized', chatWindow, contact);
-   }
+   };
 
-   public registerChatWindowInitializedHook = (func: (chatWindow?: ChatWindow, contact?: Contact) => void) => {
+   public registerChatWindowInitializedHook = (
+      func: (chatWindow?: ChatWindow, contact?: Contact) => void
+   ) => {
       this.hookRepository.registerHook('chatWindowInitialized', func);
-   }
+   };
 
-   public triggerChatWindowClearedHook = (chatWindow: ChatWindow, contact: Contact) => {
+   public triggerChatWindowClearedHook = (
+      chatWindow: ChatWindow,
+      contact: Contact
+   ) => {
       this.hookRepository.trigger('chatWindowCleared', chatWindow, contact);
-   }
+   };
 
-   public registerChatWindowClearedHook = (func: (chatWindow?: ChatWindow, contact?: Contact) => void) => {
+   public registerChatWindowClearedHook = (
+      func: (chatWindow?: ChatWindow, contact?: Contact) => void
+   ) => {
       this.hookRepository.registerHook('chatWindowCleared', func);
-   }
+   };
 
    public getContactManager(): ContactManager {
       if (!this.contactManager) {
@@ -247,7 +276,9 @@ export default class Account {
    }
 
    public getContact(jid?: IJID): IContact {
-      return jid && jid.bare !== this.getJID().bare ? this.getContactManager().getContact(jid) : this.contact;
+      return jid && jid.bare !== this.getJID().bare
+         ? this.getContactManager().getContact(jid)
+         : this.contact;
    }
 
    public getNoticeManager(): NoticeManager {

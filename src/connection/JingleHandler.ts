@@ -1,14 +1,14 @@
-import { IConnection } from './Connection.interface'
-import Account from '../Account'
-import * as JSM from 'jingle'
-import { createRegistry } from 'jxt'
-import Log from '../util/Log'
-import UUID from '../util/UUID'
+import { IConnection } from './Connection.interface';
+import Account from '../Account';
+import * as JSM from 'jingle';
+import { createRegistry } from 'jxt';
+import Log from '../util/Log';
+import UUID from '../util/UUID';
 import JID from '@src/JID';
-import { IJID } from '../JID.interface'
-import { VideoDialog } from '../ui/VideoDialog'
-import JingleSession from '../JingleSession'
-import JingleAbstractSession from '../JingleAbstractSession'
+import { IJID } from '../JID.interface';
+import { VideoDialog } from '../ui/VideoDialog';
+import JingleSession from '../JingleSession';
+import JingleAbstractSession from '../JingleAbstractSession';
 import JingleMediaSession from '@src/JingleMediaSession';
 import { IOTalkJingleMediaSession } from '@vendor/Jingle.interface';
 import IceServers, { ICEServer } from '@src/IceServers';
@@ -21,12 +21,11 @@ jxt.use(require('jxt-xmpp'));
 let IqStanza = jxt.getDefinition('iq', 'jabber:client');
 
 interface IOfferOptions {
-   offerToReceiveAudio?: boolean
-   offerToReceiveVideo?: boolean
+   offerToReceiveAudio?: boolean;
+   offerToReceiveVideo?: boolean;
 }
 
 export default class JingleHandler {
-
    protected manager: JSM;
 
    protected static videoDialog: VideoDialog;
@@ -38,46 +37,58 @@ export default class JingleHandler {
          // peerConnectionConstraints: this.getPeerConstraints(),
          jid: connection.getJID().full,
          selfID: connection.getJID().full,
-         iceServers: Client.getOption('RTCPeerConfig').iceServers
+         iceServers: Client.getOption('RTCPeerConfig').iceServers,
       });
 
-      this.manager.on('change:connectionState', function() {
+      this.manager.on('change:connectionState', function () {
          Log.info('change:connectionState', arguments);
-      })
+      });
 
-      this.manager.on('log:*', function(level, msg) {
+      this.manager.on('log:*', function (level, msg) {
          Log.debug('[JINGLE][' + level + ']', msg);
       });
 
-      this.manager.on('send', (data) => {
+      this.manager.on('send', data => {
          let iq = new IqStanza(data);
-         let iqElement = $.parseXML(iq.toString()).getElementsByTagName('iq')[0];
+         let iqElement = $.parseXML(iq.toString()).getElementsByTagName(
+            'iq'
+         )[0];
 
-         iqElement.querySelectorAll('payload-type[name="telephone-event"]').forEach(el => el.remove());
+         iqElement
+            .querySelectorAll('payload-type[name="telephone-event"]')
+            .forEach(el => el.remove());
 
          if (!iqElement.getAttribute('id')) {
             iqElement.setAttribute('id', UUID.v4() + ':sendIQ');
          }
 
-         (<any> this.connection).send(iqElement); //@REVIEW
+         (<any>this.connection).send(iqElement); //@REVIEW
       });
 
-      this.manager.on('incoming', (session) => {
+      this.manager.on('incoming', session => {
          this.onIncoming(session);
       });
 
-      IceServers.registerUpdateHook((iceServers) => {
+      IceServers.registerUpdateHook(iceServers => {
          this.setICEServers(iceServers);
       });
 
       JingleHandler.instances.push(this);
    }
 
-   public async initiate(peerJID: IJID, stream: MediaStream, offerOptions?: IOfferOptions): Promise<JingleMediaSession> {
+   public async initiate(
+      peerJID: IJID,
+      stream: MediaStream,
+      offerOptions?: IOfferOptions
+   ): Promise<JingleMediaSession> {
       let iceServers = await IceServers.get();
       this.setICEServers(iceServers);
 
-      let session: IOTalkJingleMediaSession = this.manager.createMediaSession(peerJID.full, undefined, stream);
+      let session: IOTalkJingleMediaSession = this.manager.createMediaSession(
+         peerJID.full,
+         undefined,
+         stream
+      );
 
       return new Promise<JingleMediaSession>(resolve => {
          session.start(offerOptions, () => {
@@ -92,7 +103,11 @@ export default class JingleHandler {
    public terminate(reason?: string, silent?: boolean);
    public terminate() {
       if (arguments[0] instanceof JID) {
-         this.manager.endPeerSessions(arguments[0].full, arguments[1], arguments[2]);
+         this.manager.endPeerSessions(
+            arguments[0].full,
+            arguments[1],
+            arguments[2]
+         );
       } else {
          this.manager.endAllSessions(arguments[0], arguments[1]);
       }
@@ -124,9 +139,11 @@ export default class JingleHandler {
       this.manager.process(req.toJSON());
 
       return true;
-   }
+   };
 
-   protected onIncoming(session: IOTalkJingleMediaSession): JingleAbstractSession {
+   protected onIncoming(
+      session: IOTalkJingleMediaSession
+   ): JingleAbstractSession {
       return JingleSession.create(this.account, session);
    }
 
@@ -164,7 +181,7 @@ export default class JingleHandler {
    // }
 
    public static terminateAll(reason?: string) {
-      JingleHandler.instances.forEach((instance) => {
+      JingleHandler.instances.forEach(instance => {
          instance.terminate(reason);
       });
    }

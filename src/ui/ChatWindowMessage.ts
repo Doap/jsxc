@@ -1,12 +1,12 @@
-import { IMessage, DIRECTION, MessageMark } from '../Message.interface'
-import DateTime from './util/DateTime'
-import ChatWindow from './ChatWindow'
-import AvatarSet from './AvatarSet'
-import Log from '../util/Log'
+import { IMessage, DIRECTION, MessageMark } from '../Message.interface';
+import DateTime from './util/DateTime';
+import ChatWindow from './ChatWindow';
+import AvatarSet from './AvatarSet';
+import Log from '../util/Log';
 import LinkHandlerGeo from '@src/LinkHandlerGeo';
 import Color from '@util/Color';
 
-let chatWindowMessageTemplate = require('../../template/chat-window-message.hbs')
+let chatWindowMessageTemplate = require('../../template/chat-window-message.hbs');
 
 export default class ChatWindowMessage {
    private element;
@@ -54,7 +54,7 @@ export default class ChatWindowMessage {
    private async generateElement() {
       let template = chatWindowMessageTemplate({
          id: this.message.getCssId(),
-         direction: this.message.getDirectionString()
+         direction: this.message.getDirectionString(),
       });
 
       this.element = $(template);
@@ -68,7 +68,10 @@ export default class ChatWindowMessage {
       let timestampElement = this.element.find('.jsxc-timestamp');
       DateTime.stringify(this.message.getStamp().getTime(), timestampElement);
 
-      if (this.message.getDirection() === DIRECTION.OUT || this.message.getDirection() === DIRECTION.PROBABLY_OUT) {
+      if (
+         this.message.getDirection() === DIRECTION.OUT ||
+         this.message.getDirection() === DIRECTION.PROBABLY_OUT
+      ) {
          this.element.attr('data-mark', MessageMark[this.message.getMark()]);
       }
 
@@ -94,9 +97,12 @@ export default class ChatWindowMessage {
       }
 
       if (this.message.getDirection() === DIRECTION.SYS) {
-         this.element.find('.jsxc-message-area').append('<div class="jsxc-clear"/>');
+         this.element
+            .find('.jsxc-message-area')
+            .append('<div class="jsxc-clear"/>');
       } else if (this.message.getDirection() === DIRECTION.IN) {
-         let text = this.message.getSender().name || this.message.getPeer().bare;
+         let text =
+            this.message.getSender().name || this.message.getPeer().bare;
          let lightness = 90;
          let color = Color.generate(text, undefined, 40, lightness);
 
@@ -116,7 +122,9 @@ export default class ChatWindowMessage {
       let attachmentElement = $('<div>');
       attachmentElement.addClass('jsxc-attachment');
       attachmentElement.addClass('jsxc-' + mimeType.replace(/\//, '-'));
-      attachmentElement.addClass('jsxc-' + mimeType.replace(/^([^/]+)\/.*/, '$1'));
+      attachmentElement.addClass(
+         'jsxc-' + mimeType.replace(/^([^/]+)\/.*/, '$1')
+      );
 
       if (attachment.isPersistent()) {
          attachmentElement.addClass('jsxc-persistent');
@@ -125,7 +133,11 @@ export default class ChatWindowMessage {
       if (attachment.isImage()) {
          let imgElement = $('<img>')
             .attr('alt', 'preview')
-            .attr('src', attachment.getThumbnailData() || '../images/placeholder_image.svg')
+            .attr(
+               'src',
+               attachment.getThumbnailData() ||
+                  '../images/placeholder_image.svg'
+            )
             .attr('title', attachment.getName())
             .appendTo(attachmentElement);
 
@@ -133,13 +145,20 @@ export default class ChatWindowMessage {
             attachmentElement.addClass('jsxc-no-thumbnail');
          }
 
-         attachment.registerThumbnailHook((thumbnail) => {
-            imgElement.attr('src', thumbnail || '../images/placeholder_image.svg');
+         attachment.registerThumbnailHook(thumbnail => {
+            imgElement.attr(
+               'src',
+               thumbnail || '../images/placeholder_image.svg'
+            );
 
             if (thumbnail) {
-               this.element.find('.jsxc-attachment').removeClass('jsxc-no-thumbnail');
+               this.element
+                  .find('.jsxc-attachment')
+                  .removeClass('jsxc-no-thumbnail');
             } else {
-               this.element.find('.jsxc-attachment').addClass('jsxc-no-thumbnail');
+               this.element
+                  .find('.jsxc-attachment')
+                  .addClass('jsxc-no-thumbnail');
             }
          });
       } else {
@@ -149,21 +168,31 @@ export default class ChatWindowMessage {
       }
 
       if (attachment.hasData()) {
-         attachmentElement = $('<a target="_blank" rel="noopener noreferrer">').append(attachmentElement);
+         attachmentElement = $(
+            '<a target="_blank" rel="noopener noreferrer">'
+         ).append(attachmentElement);
          attachmentElement.attr('href', attachment.getData());
          attachmentElement.attr('download', attachment.getName());
 
          if (attachment.getHandler()) {
-            attachmentElement.on('click', (ev) => {
+            attachmentElement.on('click', ev => {
                ev.preventDefault();
 
-               attachmentElement.find('.jsxc-attachment').addClass('jsxc-attachment--loading');
+               attachmentElement
+                  .find('.jsxc-attachment')
+                  .addClass('jsxc-attachment--loading');
 
-               attachment.getHandler().call(undefined, attachment, true).catch(err => {
-                  this.message.setErrorMessage(err.toString());
-               }).then(() => {
-                  attachmentElement.find('.jsxc-attachment').removeClass('jsxc-attachment--loading');
-               });
+               attachment
+                  .getHandler()
+                  .call(undefined, attachment, true)
+                  .catch(err => {
+                     this.message.setErrorMessage(err.toString());
+                  })
+                  .then(() => {
+                     attachmentElement
+                        .find('.jsxc-attachment')
+                        .removeClass('jsxc-attachment--loading');
+                  });
             });
          }
 
@@ -214,7 +243,7 @@ export default class ChatWindowMessage {
    }
 
    private registerHooks() {
-      this.message.registerHook('encrypted', (encrypted) => {
+      this.message.registerHook('encrypted', encrypted => {
          if (encrypted) {
             this.element.addClass('jsxc-encrypted');
          } else {
@@ -222,29 +251,34 @@ export default class ChatWindowMessage {
          }
       });
 
-      this.message.registerHook('unread', (unread) => {
+      this.message.registerHook('unread', unread => {
          if (!unread) {
             this.element.removeClass('jsxc-unread');
          }
       });
 
-      this.message.registerHook('progress', (progress) => {
-         this.element.find('.jsxc-attachment').attr('data-progress', Math.round(progress * 100) + '%');
-      })
+      this.message.registerHook('progress', progress => {
+         this.element
+            .find('.jsxc-attachment')
+            .attr('data-progress', Math.round(progress * 100) + '%');
+      });
 
-      if (this.message.getDirection() === DIRECTION.OUT || this.message.getDirection() === DIRECTION.PROBABLY_OUT) {
-         this.message.registerHook('mark', (mark) => {
+      if (
+         this.message.getDirection() === DIRECTION.OUT ||
+         this.message.getDirection() === DIRECTION.PROBABLY_OUT
+      ) {
+         this.message.registerHook('mark', mark => {
             this.element.attr('data-mark', MessageMark[mark]);
          });
       }
 
-      this.message.registerHook('next', (nextId) => {
+      this.message.registerHook('next', nextId => {
          if (nextId) {
             this.restoreNextMessage();
          }
       });
 
-      this.message.registerHook('errorMessage', (errorMessage) => {
+      this.message.registerHook('errorMessage', errorMessage => {
          if (errorMessage) {
             this.element.addClass('jsxc-error');
             this.element.attr('title', errorMessage);
@@ -252,6 +286,6 @@ export default class ChatWindowMessage {
             this.element.removeClass('jsxc-error');
             this.element.attr('title', null);
          }
-      })
+      });
    }
 }

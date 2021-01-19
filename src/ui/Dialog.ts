@@ -1,10 +1,9 @@
-import Log from '../util/Log'
+import Log from '../util/Log';
 import HookRepository from '@util/HookRepository';
 
 let dialogTemplate = require('../../template/dialog.hbs');
 
 export default class Dialog {
-
    private hookRepository = new HookRepository();
 
    private readonly id: string;
@@ -12,13 +11,17 @@ export default class Dialog {
    private src;
 
    // @REVIEW name is maybe unnecessary
-   public constructor(content: string, private unclosable: boolean = false, readonly name: string = '') {
+   public constructor(
+      content: string,
+      private unclosable: boolean = false,
+      readonly name: string = ''
+   ) {
       this.id = Dialog.generateId();
 
       this.src = dialogTemplate({
          id: this.id,
          name,
-         content
+         content,
       });
    }
 
@@ -42,12 +45,12 @@ export default class Dialog {
       }
    }
 
-   public resize() {
-
-   }
+   public resize() {}
 
    public getDom() {
-      return $('.jsxc-dialog[data-name="' + this.name + '"]').find('.jsxc-dialog__content');
+      return $('.jsxc-dialog[data-name="' + this.name + '"]').find(
+         '.jsxc-dialog__content'
+      );
    }
 
    public append(content: string) {
@@ -57,7 +60,7 @@ export default class Dialog {
    }
 
    public getPromise(): Promise<{}> {
-      return new Promise(() => { });
+      return new Promise(() => {});
    }
 
    public registerOnClosedHook(hook: () => void) {
@@ -72,19 +75,19 @@ export default class Dialog {
          dom.find('.jsxc-dialog-close').hide();
       }
 
-      dom.find('.jsxc-js-close').click(function(ev) {
+      dom.find('.jsxc-js-close').click(function (ev) {
          ev.preventDefault();
 
          self.close();
       });
 
-      dom.find('form').each(function() {
+      dom.find('form').each(function () {
          let form = $(this);
 
-         form.find('button[data-jsxc-loading-text]').each(function() {
+         form.find('button[data-jsxc-loading-text]').each(function () {
             let btn = $(this);
 
-            btn.on('btnloading.jsxc', function() {
+            btn.on('btnloading.jsxc', function () {
                if (!btn.prop('disabled')) {
                   btn.prop('disabled', true);
 
@@ -94,7 +97,7 @@ export default class Dialog {
                }
             });
 
-            btn.on('btnfinished.jsxc', function() {
+            btn.on('btnfinished.jsxc', function () {
                if (btn.prop('disabled')) {
                   btn.prop('disabled', false);
 

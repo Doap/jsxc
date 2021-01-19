@@ -1,5 +1,5 @@
-import Dialog from '../Dialog'
-import Client from '../../Client'
+import Dialog from '../Dialog';
+import Client from '../../Client';
 
 let exstatusTemplate = require('../../../template/extensiveStatus.hbs');
 
@@ -14,13 +14,16 @@ export default function () {
    let dom = dialog.open();
 
    const updateStatus = () => {
-      let status = dom.find('textarea[name="extended_status_text"]').val().toString();
+      let status = dom
+         .find('textarea[name="extended_status_text"]')
+         .val()
+         .toString();
       let targetPresence = Client.getPresenceController().getTargetPresence();
 
       Client.getPresenceController().setTargetPresence(targetPresence, status);
 
       dialog.close();
-   }
+   };
 
    dom.find('.jsxc-js-save').on('click', () => updateStatus());
    dom.find('.jsxc-js-clear').on('click', () => {

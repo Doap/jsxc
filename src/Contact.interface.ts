@@ -1,10 +1,10 @@
-import { IMessage } from './Message.interface'
-import { IJID } from './JID.interface'
-import { Presence } from './connection/AbstractConnection'
-import { EncryptionState } from './plugin/AbstractPlugin'
-import ChatWindowController from './ChatWindowController'
-import Transcript from './Transcript'
-import Avatar from './Avatar'
+import { IMessage } from './Message.interface';
+import { IJID } from './JID.interface';
+import { Presence } from './connection/AbstractConnection';
+import { EncryptionState } from './plugin/AbstractPlugin';
+import ChatWindowController from './ChatWindowController';
+import Transcript from './Transcript';
+import Avatar from './Avatar';
 import ChatWindow from '@ui/ChatWindow';
 import ContactProvider from './ContactProvider';
 import Account from './Account';
@@ -12,7 +12,7 @@ import DiscoInfo from './DiscoInfo';
 
 export enum ContactType {
    CHAT = 'chat',
-   GROUPCHAT = 'groupchat'
+   GROUPCHAT = 'groupchat',
 }
 
 export enum ContactSubscription {
@@ -20,7 +20,7 @@ export enum ContactSubscription {
    FROM = 'from',
    TO = 'to',
    BOTH = 'both',
-   NONE = 'none'
+   NONE = 'none',
 }
 
 export interface IContact {
@@ -40,16 +40,22 @@ export interface IContact {
 
    setPresence(resource: string, presence: Presence);
 
-   getCapableResources(features: string[]): Promise<string[]>
-   getCapableResources(features: string): Promise<string[]>
+   getCapableResources(features: string[]): Promise<string[]>;
+   getCapableResources(features: string): Promise<string[]>;
 
-   hasFeatureByResource(resource: string, features: string[]): Promise<{}>
-   hasFeatureByResource(resource: string, feature: string): Promise<{}>
+   hasFeatureByResource(resource: string, features: string[]): Promise<{}>;
+   hasFeatureByResource(resource: string, feature: string): Promise<{}>;
 
    getCapabilitiesByResource(resource: string): Promise<DiscoInfo | void>;
 
-   registerCapableResourcesHook(features: string[], cb: (resources: string[]) => void);
-   registerCapableResourcesHook(features: string, cb: (resources: string[]) => void);
+   registerCapableResourcesHook(
+      features: string[],
+      cb: (resources: string[]) => void
+   );
+   registerCapableResourcesHook(
+      features: string,
+      cb: (resources: string[]) => void
+   );
 
    getId(): string;
 

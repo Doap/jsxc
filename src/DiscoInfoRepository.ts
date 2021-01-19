@@ -1,23 +1,26 @@
-import Account from './Account'
-import DiscoInfo from './DiscoInfo'
-import PersistentMap from './util/PersistentMap'
-import JID from './JID'
-import Contact from './Contact'
+import Account from './Account';
+import DiscoInfo from './DiscoInfo';
+import PersistentMap from './util/PersistentMap';
+import JID from './JID';
+import Contact from './Contact';
 import Log from '@util/Log';
-import Client from './Client'
-import Form from './connection/Form'
-import { IDiscoInfoRepository } from './DiscoInfoRepository.interface'
+import Client from './Client';
+import Form from './connection/Form';
+import { IDiscoInfoRepository } from './DiscoInfoRepository.interface';
 import { IJID } from './JID.interface';
 
 export default class implements IDiscoInfoRepository {
    private jidVersionMap: PersistentMap;
 
    constructor(private account: Account) {
-      this.jidVersionMap = new PersistentMap(Client.getStorage(), 'capabilities');
+      this.jidVersionMap = new PersistentMap(
+         Client.getStorage(),
+         'capabilities'
+      );
    }
 
-   public addRelation(jid: IJID, version: string): void
-   public addRelation(jid: IJID, discoInfo: DiscoInfo): void
+   public addRelation(jid: IJID, version: string): void;
+   public addRelation(jid: IJID, discoInfo: DiscoInfo): void;
    public addRelation(jid: IJID, value: string | DiscoInfo) {
       if (value instanceof DiscoInfo) {
          this.jidVersionMap.set(jid.full, value.getCapsVersion());
@@ -36,8 +39,14 @@ export default class implements IDiscoInfoRepository {
       return new DiscoInfo(version);
    }
 
-   public getCapableResources(contact: Contact, features: string[]): Promise<string[]>
-   public getCapableResources(contact: Contact, features: string): Promise<string[]>
+   public getCapableResources(
+      contact: Contact,
+      features: string[]
+   ): Promise<string[]>;
+   public getCapableResources(
+      contact: Contact,
+      features: string
+   ): Promise<string[]>;
    public getCapableResources(contact: Contact, features): Promise<string[]> {
       let resources = contact.getResources();
 
@@ -49,34 +58,41 @@ export default class implements IDiscoInfoRepository {
 
       for (let resource of resources) {
          //@REVIEW
-         promises.push(new Promise(resolve => {
-            let jid = new JID(contact.getJid().bare + '/' + resource);
+         promises.push(
+            new Promise(resolve => {
+               let jid = new JID(contact.getJid().bare + '/' + resource);
 
-            this.hasFeature(jid, features)
-               .then((hasSupport) => {
+               this.hasFeature(jid, features).then(hasSupport => {
                   resolve(hasSupport ? resource : undefined);
                });
-            //@REVIEW do we need a timer?
-         }));
+               //@REVIEW do we need a timer?
+            })
+         );
       }
 
-      return Promise.all(promises).then((capableResources) => {
-         return capableResources.filter(resource => typeof resource === 'string');
+      return Promise.all(promises).then(capableResources => {
+         return capableResources.filter(
+            resource => typeof resource === 'string'
+         );
       });
    }
 
-   public hasFeature(jid: IJID, features: string[]): Promise<boolean>
-   public hasFeature(jid: IJID, feature: string): Promise<boolean>
-   public hasFeature(discoInfo: DiscoInfo, features: string[]): Promise<boolean>
-   public hasFeature(discoInfo: DiscoInfo, feature: string): Promise<boolean>
+   public hasFeature(jid: IJID, features: string[]): Promise<boolean>;
+   public hasFeature(jid: IJID, feature: string): Promise<boolean>;
+   public hasFeature(
+      discoInfo: DiscoInfo,
+      features: string[]
+   ): Promise<boolean>;
+   public hasFeature(discoInfo: DiscoInfo, feature: string): Promise<boolean>;
    public hasFeature() {
-      let features = (arguments[1] instanceof Array) ? arguments[1] : [arguments[1]];
+      let features =
+         arguments[1] instanceof Array ? arguments[1] : [arguments[1]];
       let capabilitiesPromise;
 
       if (arguments[0] instanceof JID) {
          let jid: JID = arguments[0];
 
-         capabilitiesPromise = this.getCapabilities(jid)
+         capabilitiesPromise = this.getCapabilities(jid);
       } else if (arguments[0] instanceof DiscoInfo) {
          capabilitiesPromise = Promise.resolve(arguments[0]);
       } else if (typeof arguments[0] === 'undefined') {
@@ -89,7 +105,7 @@ export default class implements IDiscoInfoRepository {
 
       return capabilitiesPromise.then((capabilities: DiscoInfo) => {
          return capabilities.hasFeature(features);
-      })
+      });
    }
 
    public getCapabilities(jid: IJID): Promise<DiscoInfo | void> {
@@ -99,7 +115,11 @@ export default class implements IDiscoInfoRepository {
       if (!version || !DiscoInfo.exists(version)) {
          return this.requestDiscoInfo(jid).then(discoInfo => {
             if (version && version !== discoInfo.getCapsVersion()) {
-               Log.warn(`Caps version doesn't match for ${jid.full}. Expected: ${version}. Actual: ${discoInfo.getCapsVersion()}.`);
+               Log.warn(
+                  `Caps version doesn't match for ${
+                     jid.full
+                  }. Expected: ${version}. Actual: ${discoInfo.getCapsVersion()}.`
+               );
             } else if (!version) {
                this.addRelation(jid, discoInfo);
             }
@@ -108,7 +128,7 @@ export default class implements IDiscoInfoRepository {
          });
       }
 
-      return new Promise<DiscoInfo>((resolve) => {
+      return new Promise<DiscoInfo>(resolve => {
          checkCaps(resolve);
       });
 
@@ -129,7 +149,10 @@ export default class implements IDiscoInfoRepository {
       let connection = this.account.getConnection();
 
       //@REVIEW why does the request fail if we send a node attribute?
-      return connection.getDiscoService().getDiscoInfo(jid).then(this.processDiscoInfo);
+      return connection
+         .getDiscoService()
+         .getDiscoInfo(jid)
+         .then(this.processDiscoInfo);
    }
 
    private processDiscoInfo(stanza: Element) {
@@ -155,26 +178,38 @@ export default class implements IDiscoInfoRepository {
                category: $(childNode).attr('category') || '',
                type: $(childNode).attr('type') || '',
                name: $(childNode).attr('name') || '',
-               lang: $(childNode).attr('xml:lang') || ''
+               lang: $(childNode).attr('xml:lang') || '',
             });
             //@TODO test required arguments
          }
          //@TODO handle extended information
       }
 
-      if (typeof capabilities.identity === 'undefined' || capabilities.identity.length === 0) {
-         return Promise.reject('Disco info response is invalid. Missing identity.');
+      if (
+         typeof capabilities.identity === 'undefined' ||
+         capabilities.identity.length === 0
+      ) {
+         return Promise.reject(
+            'Disco info response is invalid. Missing identity.'
+         );
       }
 
-      let forms = queryElement.find('x[xmlns="jabber:x:data"]').get().map((element) => {
-         return Form.fromXML(element);
-      });
+      let forms = queryElement
+         .find('x[xmlns="jabber:x:data"]')
+         .get()
+         .map(element => {
+            return Form.fromXML(element);
+         });
 
       //   if (typeof capabilities['feature'] === 'undefined' || capabilities['feature'].indexOf('http://jabber.org/protocol/disco#info') < 0) {
       //      return Promise.reject('Disco info response is unvalid. Doesnt support disco.');
       //   }
 
-      let discoInfo = new DiscoInfo(capabilities.identity, capabilities.feature, forms);
+      let discoInfo = new DiscoInfo(
+         capabilities.identity,
+         capabilities.feature,
+         forms
+      );
 
       return Promise.resolve(discoInfo);
    }

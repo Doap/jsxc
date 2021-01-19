@@ -1,13 +1,16 @@
-import Log from './util/Log'
-import UUID from './util/UUID'
-import PersistentMap from './util/PersistentMap'
-import Client from './Client'
-import beautifyBytes from './ui/util/ByteBeautifier'
+import Log from './util/Log';
+import UUID from './util/UUID';
+import PersistentMap from './util/PersistentMap';
+import Client from './Client';
+import beautifyBytes from './ui/util/ByteBeautifier';
 
-export type AttachmentHandler = (attachment: Attachment, active: boolean) => Promise<void>;
+export type AttachmentHandler = (
+   attachment: Attachment,
+   active: boolean
+) => Promise<void>;
 
 export default class Attachment {
-   private static handlers: {[key: string]: AttachmentHandler} = {}
+   private static handlers: { [key: string]: AttachmentHandler } = {};
 
    public static registerHandler(key: string, handler: AttachmentHandler) {
       Attachment.handlers[key] = handler;
@@ -38,12 +41,12 @@ export default class Attachment {
          this.properties.set({
             mimeType: this.file.type,
             name: this.file.name,
-            size: this.file.size
+            size: this.file.size,
          });
       } else if (arguments.length === 3) {
          this.properties.set({
             mimeType: arguments[1],
-            name: arguments[0]
+            name: arguments[0],
          });
 
          this.data = arguments[2];
@@ -172,7 +175,7 @@ export default class Attachment {
          img.attr('title', title);
          // img.attr('src', jsxc.options.get('root') + '/img/loading.gif');
 
-         this.getDataFromFile().then((src) => {
+         this.getDataFromFile().then(src => {
             img.attr('src', src);
          });
 
@@ -184,15 +187,15 @@ export default class Attachment {
 
    public registerThumbnailHook = (hook: (thumbnail?: string) => void) => {
       this.properties.registerHook('thumbnail', hook);
-   }
+   };
 
    private getDataFromFile(): Promise<string> {
       return new Promise((resolve, reject) => {
          let reader = new FileReader();
 
-         reader.onload = function() {
-            resolve(<string> reader.result);
-         }
+         reader.onload = function () {
+            resolve(<string>reader.result);
+         };
 
          reader.onerror = reject;
 
@@ -211,7 +214,7 @@ export default class Attachment {
 
       if (force || !this.hasData()) {
          if (this.file) {
-            this.getDataFromFile().then((data) => {
+            this.getDataFromFile().then(data => {
                this.data = data;
 
                this.generateThumbnail();
@@ -227,7 +230,7 @@ export default class Attachment {
       let sy;
       let dHeight = 100;
       let dWidth = 100;
-      let canvas = <HTMLCanvasElement> $('<canvas>').get(0);
+      let canvas = <HTMLCanvasElement>$('<canvas>').get(0);
 
       canvas.width = dWidth;
       canvas.height = dHeight;

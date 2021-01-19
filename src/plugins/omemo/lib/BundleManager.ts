@@ -1,6 +1,12 @@
 import PEP from '@connection/services/PEP';
 import Address from '../vendor/Address';
-import { NS_BUNDLES, NS_BASE, NS_DEVICELIST, NUM_PRE_KEYS, MAX_PRE_KEY_ID } from '../util/Const'
+import {
+   NS_BUNDLES,
+   NS_BASE,
+   NS_DEVICELIST,
+   NUM_PRE_KEYS,
+   MAX_PRE_KEY_ID,
+} from '../util/Const';
 import Bundle from './Bundle';
 import Log from '@util/Log';
 import IdentityKey from '../model/IdentityKey';
@@ -8,13 +14,11 @@ import PreKey from '../model/PreKey';
 import SignedPreKey from '../model/SignedPreKey';
 import { KeyHelper } from '../vendor/KeyHelper';
 import Store from './Store';
-import { $build } from '../../../vendor/Strophe'
+import { $build } from '../../../vendor/Strophe';
 import Random from '@util/Random';
 
 export default class BundleManager {
-   constructor(private pepService: PEP, private store: Store) {
-
-   }
+   constructor(private pepService: PEP, private store: Store) {}
 
    public async refreshBundle(): Promise<Bundle> {
       Log.debug('Refresh local device bundle.');
@@ -24,12 +28,17 @@ export default class BundleManager {
       let preKeyIds = this.store.getPreKeyIds();
       let signedPreKeyIds = this.store.getSignedPreKeyIds();
 
-      let newKeyIds = this.generateUniqueKeyIds(NUM_PRE_KEYS - preKeyIds.length, preKeyIds);
+      let newKeyIds = this.generateUniqueKeyIds(
+         NUM_PRE_KEYS - preKeyIds.length,
+         preKeyIds
+      );
 
       await Promise.all(newKeyIds.map(id => this.generatePreKey(id)));
 
       if (signedPreKeyIds.length !== 1) {
-         throw new Error(`Could not refresh local device bundle, because we have ${signedPreKeyIds.length} signed prekeys.`);
+         throw new Error(
+            `Could not refresh local device bundle, because we have ${signedPreKeyIds.length} signed prekeys.`
+         );
       }
 
       return new Bundle({
@@ -48,14 +57,16 @@ export default class BundleManager {
 
       preKeyPromises = ids.map(id => this.generatePreKey(id));
 
-      preKeyPromises.push(this.generateSignedPreKey(identityKey, signedPreKeyId));
+      preKeyPromises.push(
+         this.generateSignedPreKey(identityKey, signedPreKeyId)
+      );
 
       let preKeys = await Promise.all(preKeyPromises);
 
       return new Bundle({
          identityKey,
-         signedPreKey: <SignedPreKey> preKeys.pop(),
-         preKeys
+         signedPreKey: <SignedPreKey>preKeys.pop(),
+         preKeys,
       });
    }
 
@@ -81,7 +92,10 @@ export default class BundleManager {
       return preKey;
    }
 
-   private async generateSignedPreKey(identityKey: IdentityKey, id: number): Promise<SignedPreKey> {
+   private async generateSignedPreKey(
+      identityKey: IdentityKey,
+      id: number
+   ): Promise<SignedPreKey> {
       let signedPreKey = await KeyHelper.generateSignedPreKey(identityKey, id);
 
       this.store.storeSignedPreKey(signedPreKey);
@@ -105,7 +119,9 @@ export default class BundleManager {
       let bundleElement = itemsElement.find(`bundle[xmlns='${NS_BASE}']`);
 
       if (bundleElement.length !== 1) {
-         throw new Error(`Expected to find one bundle, but there are actually ${bundleElement.length} bundles.`);
+         throw new Error(
+            `Expected to find one bundle, but there are actually ${bundleElement.length} bundles.`
+         );
       }
 
       let bundle = Bundle.fromXML(bundleElement.get());

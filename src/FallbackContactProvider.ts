@@ -9,7 +9,10 @@ import ContactManager from './ContactManager';
 export const FALLBACK_ID = 'fallback';
 
 export default class FallbackContactProvider extends ContactProvider {
-   constructor(protected contactManager: ContactManager, private account: Account) {
+   constructor(
+      protected contactManager: ContactManager,
+      private account: Account
+   ) {
       super(contactManager);
    }
 
@@ -25,8 +28,8 @@ export default class FallbackContactProvider extends ContactProvider {
       return Promise.resolve(false);
    }
 
-   public createContact(jid: IJID, name?: string): IContact
-   public createContact(id: string): IContact
+   public createContact(jid: IJID, name?: string): IContact;
+   public createContact(id: string): IContact;
    public createContact() {
       if (typeof arguments[0] === 'string') {
          let contact = new Contact(this.account, arguments[0]);

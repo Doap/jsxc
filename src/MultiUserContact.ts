@@ -1,11 +1,11 @@
-import Contact from './Contact'
-import JID from './JID'
-import MultiUserChatWindow from './ui/MultiUserChatWindow'
-import PersistentMap from './util/PersistentMap'
-import { Presence } from './connection/AbstractConnection'
-import Form from './connection/Form'
-import Account from './Account'
-import { ContactSubscription } from './Contact.interface'
+import Contact from './Contact';
+import JID from './JID';
+import MultiUserChatWindow from './ui/MultiUserChatWindow';
+import PersistentMap from './util/PersistentMap';
+import { Presence } from './connection/AbstractConnection';
+import Form from './connection/Form';
+import Account from './Account';
+import { ContactSubscription } from './Contact.interface';
 import { IMUCService } from '@connection/Connection.interface';
 import { IJID } from './JID.interface';
 
@@ -14,14 +14,14 @@ export const enum AFFILIATION {
    MEMBER = 'member',
    OUTCAST = 'outcast',
    OWNER = 'owner',
-   NONE = 'none'
-};
+   NONE = 'none',
+}
 export const enum ROLE {
    MODERATOR = 'moderator',
    PARTICIPANT = 'participant',
    VISITOR = 'visitor',
-   NONE = 'none'
-};
+   NONE = 'none',
+}
 // const enum ROOMSTATE {
 //    INIT,
 //    ENTERED,
@@ -30,11 +30,10 @@ export const enum ROLE {
 //    DESTROYED,
 // };
 export const enum ROOMCONFIG {
-   INSTANT = 'instant'
-};
+   INSTANT = 'instant',
+}
 
 export default class MultiUserContact extends Contact {
-
    public static INSTANT_ROOMCONFIG = ROOMCONFIG.INSTANT;
 
    public static TYPE = 'groupchat';
@@ -51,10 +50,14 @@ export default class MultiUserContact extends Contact {
 
    private getMembers(): PersistentMap {
       if (!this.members) {
-         this.members = new PersistentMap(this.account.getStorage(), 'members', this.getId());
+         this.members = new PersistentMap(
+            this.account.getStorage(),
+            'members',
+            this.getId()
+         );
       }
 
-      return this.members
+      return this.members;
    }
 
    private getService(): IMUCService {
@@ -62,11 +65,17 @@ export default class MultiUserContact extends Contact {
    }
 
    public async invite(jid: JID, reason?: string) {
-      let discoInfo = await this.account.getDiscoInfoRepository().requestDiscoInfo(this.getJid());
+      let discoInfo = await this.account
+         .getDiscoInfoRepository()
+         .requestDiscoInfo(this.getJid());
       let isMembersOnly = discoInfo.hasFeature('muc_membersonly');
 
       if (isMembersOnly) {
-         this.getService().sendMediatedMultiUserInvitation(jid, this.getJid(), reason);
+         this.getService().sendMediatedMultiUserInvitation(
+            jid,
+            this.getJid(),
+            reason
+         );
 
          return;
       }
@@ -78,7 +87,12 @@ export default class MultiUserContact extends Contact {
          for (let resource of resources) {
             if (contact.hasFeatureByResource(resource, 'jabber:x:conference')) {
                let password = this.data.get('password');
-               this.getService().sendDirectMultiUserInvitation(jid, this.getJid(), reason, password);
+               this.getService().sendDirectMultiUserInvitation(
+                  jid,
+                  this.getJid(),
+                  reason,
+                  password
+               );
             }
          }
 
@@ -96,16 +110,20 @@ export default class MultiUserContact extends Contact {
       return this.getService().changeNickname(this.getJid(), nickname);
    }
 
-   public kick(nickname: string, reason?:string) {
-      return this.getService().kickUser(this.getJid(), nickname,reason);
+   public kick(nickname: string, reason?: string) {
+      return this.getService().kickUser(this.getJid(), nickname, reason);
    }
 
-   public ban(target: IJID, reason?:string) {
-      return this.getService().banUser(this.getJid(), target,reason);
+   public ban(target: IJID, reason?: string) {
+      return this.getService().banUser(this.getJid(), target, reason);
    }
 
    public changeAffiliation(target: IJID, affiliation: string) {
-      return this.getService().changeAffiliation(this.getJid(), target, affiliation);
+      return this.getService().changeAffiliation(
+         this.getJid(),
+         target,
+         affiliation
+      );
    }
 
    public changeRole(nickname: string, role: string) {
@@ -117,7 +135,10 @@ export default class MultiUserContact extends Contact {
       this.data.set('memberListComplete', false);
       this.removeAllMembers();
 
-      return this.getService().joinMultiUserRoom(new JID(this.jid.bare, this.getNickname()), this.data.get('password'));
+      return this.getService().joinMultiUserRoom(
+         new JID(this.jid.bare, this.getNickname()),
+         this.data.get('password')
+      );
    }
 
    public leave() {
@@ -160,7 +181,9 @@ export default class MultiUserContact extends Contact {
       return this.chatWindow;
    }
 
-   public getMember(nickname: string): {affiliation?: AFFILIATION, role?: ROLE, jid?: JID} {
+   public getMember(
+      nickname: string
+   ): { affiliation?: AFFILIATION; role?: ROLE; jid?: JID } {
       let data = this.getMembers().get(nickname) || {};
 
       data.jid = data.jid ? new JID(data.jid) : undefined;
@@ -168,16 +191,21 @@ export default class MultiUserContact extends Contact {
       return data;
    }
 
-   public addMember(nickname: string, affiliation?: AFFILIATION, role?: ROLE, jid?: JID): boolean {
+   public addMember(
+      nickname: string,
+      affiliation?: AFFILIATION,
+      role?: ROLE,
+      jid?: JID
+   ): boolean {
       let isNewMember = !this.getMembers().get(nickname);
 
       this.getMembers().set(nickname, {
          affiliation,
          role,
-         jid: jid ? jid.full : undefined
+         jid: jid ? jid.full : undefined,
       });
 
-      return isNewMember
+      return isNewMember;
    }
 
    public removeMember(nickname: string) {
@@ -193,7 +221,7 @@ export default class MultiUserContact extends Contact {
    }
 
    public getSubscription(): ContactSubscription {
-      return ContactSubscription.BOTH;;
+      return ContactSubscription.BOTH;
    }
 
    public setSubject(subject: string) {
@@ -262,8 +290,13 @@ export default class MultiUserContact extends Contact {
       return dateString ? new Date(dateString) : undefined;
    }
 
-   public registerMemberHook(id: string, func: (newValue: any, oldValue: any, key: string) => void);
-   public registerMemberHook(func: (newValue: any, oldValue: any, key: string) => void);
+   public registerMemberHook(
+      id: string,
+      func: (newValue: any, oldValue: any, key: string) => void
+   );
+   public registerMemberHook(
+      func: (newValue: any, oldValue: any, key: string) => void
+   );
    public registerMemberHook() {
       this.getMembers().registerHook.apply(this.getMembers(), arguments);
    }

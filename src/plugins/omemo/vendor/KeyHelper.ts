@@ -16,13 +16,19 @@ export class KeyHelper {
       });
    }
 
-   public static async generateSignedPreKey(identityKey: IdentityKey, signedKeyId: number): Promise<SignedPreKey> {
+   public static async generateSignedPreKey(
+      identityKey: IdentityKey,
+      signedKeyId: number
+   ): Promise<SignedPreKey> {
       let signalIdentityKey = {
          pubKey: identityKey.getPublic(),
          privKey: identityKey.getPrivate(),
       };
 
-      let signalSignedPreKey = await SignalKeyHelper.generateSignedPreKey(signalIdentityKey, signedKeyId);
+      let signalSignedPreKey = await SignalKeyHelper.generateSignedPreKey(
+         signalIdentityKey,
+         signedKeyId
+      );
 
       return new SignedPreKey({
          keyId: signalSignedPreKey.keyId,

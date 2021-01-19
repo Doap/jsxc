@@ -1,10 +1,13 @@
-
 export default class ListItem {
    private element: JQuery;
 
-   constructor(private primaryText: string, private secondaryText?: string, private onClickHandler?, private avatar?: JQuery, private secondaryAction?: JQuery) {
-
-   }
+   constructor(
+      private primaryText: string,
+      private secondaryText?: string,
+      private onClickHandler?,
+      private avatar?: JQuery,
+      private secondaryAction?: JQuery
+   ) {}
 
    public getDOM(): JQuery {
       if (!this.element) {
@@ -32,10 +35,16 @@ export default class ListItem {
       textElement.addClass('jsxc-list__text');
       textElement.appendTo(this.element);
 
-      $('<div>').text(this.primaryText).addClass('jsxc-list__text__primary').appendTo(textElement);
+      $('<div>')
+         .text(this.primaryText)
+         .addClass('jsxc-list__text__primary')
+         .appendTo(textElement);
 
       if (this.secondaryText) {
-         $('<div>').text(this.secondaryText).addClass('jsxc-list__text__secondary').appendTo(textElement);
+         $('<div>')
+            .text(this.secondaryText)
+            .addClass('jsxc-list__text__secondary')
+            .appendTo(textElement);
       }
 
       if (this.secondaryAction) {

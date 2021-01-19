@@ -1,7 +1,7 @@
-import AbstractService from './AbstractService'
-import { IJID } from '../../JID.interface'
-import * as NS from '../xmpp/namespace'
-import { $iq } from '../../vendor/Strophe'
+import AbstractService from './AbstractService';
+import { IJID } from '../../JID.interface';
+import * as NS from '../xmpp/namespace';
+import { $iq } from '../../vendor/Strophe';
 
 NS.register('VCARD', 'vcard-temp');
 
@@ -9,15 +9,15 @@ export default class Vcard extends AbstractService {
    public loadVcard(jid: IJID) {
       let iq = $iq({
          type: 'get',
-         to: jid.bare
+         to: jid.bare,
       }).c('vCard', {
-         xmlns: NS.get('VCARD')
+         xmlns: NS.get('VCARD'),
       });
 
       return this.sendIQ(iq).then(this.parseVcard);
    }
 
-   private parseVcard = (stanza) => {
+   private parseVcard = stanza => {
       let data: any = {};
       let vcard = $(stanza).find('vCard');
 
@@ -30,14 +30,14 @@ export default class Vcard extends AbstractService {
       data = this.parseVcardChildren(vcard);
 
       return data;
-   }
+   };
 
-   private parseVcardChildren = (stanza) => {
+   private parseVcardChildren = stanza => {
       let self = this;
       let data: any = {};
       let children = stanza.children();
 
-      children.each(function() {
+      children.each(function () {
          let item = $(this);
          let children = item.children();
          let itemName = item[0].tagName;
@@ -58,7 +58,7 @@ export default class Vcard extends AbstractService {
 
             value = {
                type,
-               src
+               src,
             };
          } else if (itemName === 'EMAIL') {
             value = item.find('USERID').text();
@@ -78,5 +78,5 @@ export default class Vcard extends AbstractService {
       });
 
       return data;
-   }
+   };
 }

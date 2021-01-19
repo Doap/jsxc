@@ -1,11 +1,11 @@
-import { AbstractPlugin, IMetaData } from '../../plugin/AbstractPlugin'
-import ChatWindow from '../../ui/ChatWindow'
-import Translation from '../../util/Translation'
-import PersistentMap from '../../util/PersistentMap'
-import JID from '../../JID'
-import { IJID } from '../../JID.interface'
-import * as Namespace from '../../connection/xmpp/namespace'
-import Archive from './Archive'
+import { AbstractPlugin, IMetaData } from '../../plugin/AbstractPlugin';
+import ChatWindow from '../../ui/ChatWindow';
+import Translation from '../../util/Translation';
+import PersistentMap from '../../util/PersistentMap';
+import JID from '../../JID';
+import { IJID } from '../../JID.interface';
+import * as Namespace from '../../connection/xmpp/namespace';
+import Archive from './Archive';
 import Contact from '@src/Contact';
 import PluginAPI from '@src/plugin/PluginAPI';
 import { IContact } from '@src/Contact.interface';
@@ -29,42 +29,54 @@ export default class MessageArchiveManagementPlugin extends AbstractPlugin {
    }
 
    public static getDescription(): string {
-      return ;
+      return;
    }
 
    public static getMetaData(): IMetaData {
       return {
          description: Translation.t('setting-mam-enable'),
-         xeps: [{
-            id: 'XEP-0313',
-            name: 'Message Archive Management',
-            version: '0.6.3',
-         }]
-      }
+         xeps: [
+            {
+               id: 'XEP-0313',
+               name: 'Message Archive Management',
+               version: '0.6.3',
+            },
+         ],
+      };
    }
 
-   private archives: {[key: string]: Archive} = {};
+   private archives: { [key: string]: Archive } = {};
    private queryContactRelation: PersistentMap;
-   private supportCache: {[archiveJid: string]: string | boolean} = {};
+   private supportCache: { [archiveJid: string]: string | boolean } = {};
 
    constructor(pluginAPI: PluginAPI) {
       super(MIN_VERSION, MAX_VERSION, pluginAPI);
 
-      this.queryContactRelation = new PersistentMap(pluginAPI.getStorage(), 'mam', 'query');
+      this.queryContactRelation = new PersistentMap(
+         pluginAPI.getStorage(),
+         'mam',
+         'query'
+      );
 
-      pluginAPI.registerChatWindowInitializedHook((chatWindow: ChatWindow, contact: Contact) => {
-         this.addLoadButtonIfEnabled(chatWindow, contact);
-      });
-
-      pluginAPI.registerChatWindowClearedHook((chatWindow: ChatWindow, contact: Contact) => {
-         let archiveJid = this.getArchiveJid(contact);
-
-         if (this.supportCache[archiveJid.bare]) {
-            this.getArchive(contact.getJid()).clear();
+      pluginAPI.registerChatWindowInitializedHook(
+         (chatWindow: ChatWindow, contact: Contact) => {
+            this.addLoadButtonIfEnabled(chatWindow, contact);
          }
-      });
+      );
 
-      this.pluginAPI.getConnection().registerHandler(this.onMamMessage, null, 'message', null);
+      pluginAPI.registerChatWindowClearedHook(
+         (chatWindow: ChatWindow, contact: Contact) => {
+            let archiveJid = this.getArchiveJid(contact);
+
+            if (this.supportCache[archiveJid.bare]) {
+               this.getArchive(contact.getJid()).clear();
+            }
+         }
+      );
+
+      this.pluginAPI
+         .getConnection()
+         .registerHandler(this.onMamMessage, null, 'message', null);
    }
 
    public getStorage() {
@@ -92,7 +104,9 @@ export default class MessageArchiveManagementPlugin extends AbstractPlugin {
 
       let version: string | boolean = false;
       try {
-         let discoInfo = await discoInfoRepository.getCapabilities(archivingJid);
+         let discoInfo = await discoInfoRepository.getCapabilities(
+            archivingJid
+         );
 
          if (discoInfo && discoInfo.hasFeature(MAM2)) {
             version = MAM2;
@@ -100,13 +114,18 @@ export default class MessageArchiveManagementPlugin extends AbstractPlugin {
             version = MAM1;
          }
       } catch (err) {
-         this.pluginAPI.Log.warn('Could not determine MAM server support:', err);
+         this.pluginAPI.Log.warn(
+            'Could not determine MAM server support:',
+            err
+         );
       }
 
       if (version) {
          this.pluginAPI.Log.debug(archivingJid.bare + ' supports ' + version);
       } else {
-         this.pluginAPI.Log.debug(archivingJid.bare + ' has no support for MAM');
+         this.pluginAPI.Log.debug(
+            archivingJid.bare + ' has no support for MAM'
+         );
       }
 
       this.supportCache[archivingJid.bare] = version;
@@ -115,7 +134,9 @@ export default class MessageArchiveManagementPlugin extends AbstractPlugin {
    }
 
    private getArchiveJid(contact: Contact) {
-      let jid = contact.isGroupChat() ? contact.getJid() : this.getConnection().getJID();
+      let jid = contact.isGroupChat()
+         ? contact.getJid()
+         : this.getConnection().getJID();
 
       return new JID(jid.bare);
    }
@@ -123,14 +144,17 @@ export default class MessageArchiveManagementPlugin extends AbstractPlugin {
    private addLoadButtonIfEnabled(chatWindow: ChatWindow, contact: Contact) {
       let archivingJid = this.getArchiveJid(contact);
 
-      this.determineServerSupport(archivingJid).then((version) => {
+      this.determineServerSupport(archivingJid).then(version => {
          if (version) {
             this.addLoadButton(chatWindow.getDom(), contact);
          }
       });
    }
 
-   private addLoadButton(chatWindowElement: JQuery<HTMLElement>, contact: Contact) {
+   private addLoadButton(
+      chatWindowElement: JQuery<HTMLElement>,
+      contact: Contact
+   ) {
       let classNameShow = 'jsxc-show';
       let classNameMamEnable = 'jsxc-mam-enabled';
       let messageAreaElement = chatWindowElement.find('.jsxc-message-area');
@@ -147,7 +171,7 @@ export default class MessageArchiveManagementPlugin extends AbstractPlugin {
       });
       element.append(spanElement);
 
-      messageAreaElement.scroll(function() {
+      messageAreaElement.scroll(function () {
          if (this.scrollTop < 42 && !archive.isExhausted()) {
             element.addClass(classNameShow);
          } else {
@@ -161,7 +185,7 @@ export default class MessageArchiveManagementPlugin extends AbstractPlugin {
          chatWindowElement.addClass(classNameMamEnable);
       }
 
-      archive.registerExhaustedHook((isExhausted) => {
+      archive.registerExhaustedHook(isExhausted => {
          if (isExhausted) {
             chatWindowElement.removeClass(classNameMamEnable);
          } else {
@@ -180,7 +204,9 @@ export default class MessageArchiveManagementPlugin extends AbstractPlugin {
          return true;
       }
 
-      let forwardedElement = resultElement.find('forwarded[xmlns="urn:xmpp:forward:0"]');
+      let forwardedElement = resultElement.find(
+         'forwarded[xmlns="urn:xmpp:forward:0"]'
+      );
 
       if (forwardedElement.length !== 1) {
          return true;
@@ -197,11 +223,14 @@ export default class MessageArchiveManagementPlugin extends AbstractPlugin {
       this.getArchive(jid).onForwardedMessage(forwardedElement);
 
       return true;
-   }
+   };
 
    public getArchive(jid: IJID) {
       if (!this.archives[jid.bare]) {
-         this.archives[jid.bare] = new Archive(this, this.pluginAPI.getContact(jid));
+         this.archives[jid.bare] = new Archive(
+            this,
+            this.pluginAPI.getContact(jid)
+         );
       }
 
       return this.archives[jid.bare];

@@ -1,7 +1,7 @@
-import AbstractService from './AbstractService'
-import { IJID } from '../../JID.interface'
-import Form from '../Form'
-import { $pres, $iq, $msg, Strophe } from '../../vendor/Strophe'
+import AbstractService from './AbstractService';
+import { IJID } from '../../JID.interface';
+import Form from '../Form';
+import { $pres, $iq, $msg, Strophe } from '../../vendor/Strophe';
 import { IMUCService } from '@connection/Connection.interface';
 
 //@REVIEW this will not be reflected in caps and disco
@@ -11,7 +11,12 @@ const NS_OWNER = NS_BASE + '#owner';
 const NS_USER = NS_BASE + '#user';
 const NS_ADMIN = NS_BASE + '#admin';
 
-export type MultiUserAffiliation = 'admin' | 'member' | 'none' | 'outcast' | 'owner';
+export type MultiUserAffiliation =
+   | 'admin'
+   | 'member'
+   | 'none'
+   | 'outcast'
+   | 'owner';
 
 export default class MUC extends AbstractService implements IMUCService {
    public joinMultiUserRoom(jid: IJID, password?: string) {
@@ -20,9 +25,9 @@ export default class MUC extends AbstractService implements IMUCService {
       }
 
       let pres = $pres({
-         to: jid.full
+         to: jid.full,
       }).c('x', {
-         xmlns: Strophe.NS.MUC
+         xmlns: Strophe.NS.MUC,
       });
 
       if (password) {
@@ -33,85 +38,96 @@ export default class MUC extends AbstractService implements IMUCService {
    }
 
    public changeNickname(jid: IJID, nickname: string) {
-      let newjid=jid.bare+'/'+nickname;
+      let newjid = jid.bare + '/' + nickname;
 
       let pres = $pres({
-         to: newjid
+         to: newjid,
       }).c('x', {
-         xmlns: Strophe.NS.MUC
+         xmlns: Strophe.NS.MUC,
       });
 
       return this.send(pres);
    }
 
-   public kickUser(jid: IJID, nickname: string,reason?:string)
-   {
+   public kickUser(jid: IJID, nickname: string, reason?: string) {
       let iq = $iq({
          to: jid.bare,
-         type: 'set'
-      }).c('query', {
-         xmlns: NS_ADMIN
-      }).c('item',{nick:nickname, role:'none'});
+         type: 'set',
+      })
+         .c('query', {
+            xmlns: NS_ADMIN,
+         })
+         .c('item', { nick: nickname, role: 'none' });
 
-      if (reason&&reason.trim().length>0)
-      {
-          iq.c('reason').t(reason);
+      if (reason && reason.trim().length > 0) {
+         iq.c('reason').t(reason);
       }
 
       return this.sendIQ(iq);
    }
 
    public changeTopic(roomJid: IJID, topic?: string) {
-
       let msg = $msg({
          to: roomJid.bare,
-         type:'groupchat'
-      }).c('subject').t(topic);
+         type: 'groupchat',
+      })
+         .c('subject')
+         .t(topic);
 
       this.send(msg);
    }
 
-   public changeRole(jid: IJID, nickname: string, rolestr: string, reason?:string)
-   {
+   public changeRole(
+      jid: IJID,
+      nickname: string,
+      rolestr: string,
+      reason?: string
+   ) {
       let iq = $iq({
          to: jid.bare,
-         type: 'set'
-      }).c('query', {
-         xmlns: NS_ADMIN
-      }).c('item',{role:rolestr, nick:nickname});
+         type: 'set',
+      })
+         .c('query', {
+            xmlns: NS_ADMIN,
+         })
+         .c('item', { role: rolestr, nick: nickname });
 
-      if (reason&&reason.trim().length>0)
-      {
-          iq.c('reason').t(reason);
+      if (reason && reason.trim().length > 0) {
+         iq.c('reason').t(reason);
       }
 
       return this.sendIQ(iq);
    }
 
-   public changeAffiliation(jid: IJID, targetjid: IJID, affiliationstr: string)
-   {
+   public changeAffiliation(
+      jid: IJID,
+      targetjid: IJID,
+      affiliationstr: string
+   ) {
       let iq = $iq({
          to: jid.bare,
-         type: 'set'
-      }).c('query', {
-         xmlns: NS_ADMIN
-      }).c('item',{affiliation:affiliationstr, jid:targetjid.bare});
+         type: 'set',
+      })
+         .c('query', {
+            xmlns: NS_ADMIN,
+         })
+         .c('item', { affiliation: affiliationstr, jid: targetjid.bare });
 
       return this.sendIQ(iq);
    }
 
-   public banUser(jid: IJID, targetjid: IJID,reason?:string)
-   {
+   public banUser(jid: IJID, targetjid: IJID, reason?: string) {
       let iq = $iq({
          to: jid.bare,
-         type: 'set'
-      }).c('query', {
-         xmlns: NS_ADMIN
-      }).c('item',{affiliation:'outcast', jid:targetjid.bare});
+         type: 'set',
+      })
+         .c('query', {
+            xmlns: NS_ADMIN,
+         })
+         .c('item', { affiliation: 'outcast', jid: targetjid.bare });
 
-      if (reason&&reason.trim().length>0)
-      {
-          iq.c('reason').t(reason);
+      if (reason && reason.trim().length > 0) {
+         iq.c('reason').t(reason);
       }
 
       return this.sendIQ(iq);
@@ -121,7 +137,7 @@ export default class MUC extends AbstractService implements IMUCService {
       let pres = $pres({
          type: 'unavailable',
          //   id: presenceid,
-         to: jid.full
+         to: jid.full,
       });
 
       if (exitMessage) {
@@ -134,10 +150,12 @@ export default class MUC extends AbstractService implements IMUCService {
    public destroyMultiUserRoom(jid: IJID): Promise<Element> {
       let iq = $iq({
          to: jid.bare,
-         type: 'set'
-      }).c('query', {
-         xmlns: NS_OWNER
-      }).c('destroy');
+         type: 'set',
+      })
+         .c('query', {
+            xmlns: NS_OWNER,
+         })
+         .c('destroy');
 
       return this.sendIQ(iq);
    }
@@ -145,29 +163,36 @@ export default class MUC extends AbstractService implements IMUCService {
    public getMemberList(jid: IJID): Promise<Element> {
       let iq = $iq({
          to: jid.bare,
-         type: 'get'
-      }).c('query', {
-         xmlns: NS_ADMIN
-      }).c('item', { 'affiliation': 'member' });
+         type: 'get',
+      })
+         .c('query', {
+            xmlns: NS_ADMIN,
+         })
+         .c('item', { affiliation: 'member' });
 
       return this.sendIQ(iq);
    }
 
-   public setMemberList(jid: IJID, items: { jid: IJID, affiliation: MultiUserAffiliation }[]): Promise<Element> {
+   public setMemberList(
+      jid: IJID,
+      items: { jid: IJID; affiliation: MultiUserAffiliation }[]
+   ): Promise<Element> {
       let iq = $iq({
          to: jid.bare,
-         type: 'set'
+         type: 'set',
       });
       let query = iq.c('query', {
-         xmlns: NS_ADMIN
+         xmlns: NS_ADMIN,
       });
 
       items.forEach(item => {
-         query.c('item', {
-            affiliation: item.affiliation,
-            jid: item.jid.bare,
-         }).up();
-      })
+         query
+            .c('item', {
+               affiliation: item.affiliation,
+               jid: item.jid.bare,
+            })
+            .up();
+      });
 
       return this.sendIQ(iq);
    }
@@ -175,13 +200,15 @@ export default class MUC extends AbstractService implements IMUCService {
    public createInstantRoom(jid: IJID): Promise<Element> {
       let iq = $iq({
          to: jid.bare,
-         type: 'set'
-      }).c('query', {
-         xmlns: NS_OWNER
-      }).c('x', {
-         xmlns: 'jabber:x:data',
-         type: 'submit'
-      });
+         type: 'set',
+      })
+         .c('query', {
+            xmlns: NS_OWNER,
+         })
+         .c('x', {
+            xmlns: 'jabber:x:data',
+            type: 'submit',
+         });
 
       return this.sendIQ(iq);
    }
@@ -189,9 +216,9 @@ export default class MUC extends AbstractService implements IMUCService {
    public getRoomConfigurationForm(jid: IJID): Promise<Element> {
       let iq = $iq({
          to: jid.bare,
-         type: 'get'
+         type: 'get',
       }).c('query', {
-         xmlns: NS_OWNER
+         xmlns: NS_OWNER,
       });
 
       return this.sendIQ(iq);
@@ -200,10 +227,12 @@ export default class MUC extends AbstractService implements IMUCService {
    public submitRoomConfiguration(jid: IJID, form: Form): Promise<Element> {
       let iq = $iq({
          to: jid.bare,
-         type: 'set'
-      }).c('query', {
-         xmlns: NS_OWNER
-      }).cnode(form.toXML());
+         type: 'set',
+      })
+         .c('query', {
+            xmlns: NS_OWNER,
+         })
+         .cnode(form.toXML());
 
       return this.sendIQ(iq);
    }
@@ -211,26 +240,34 @@ export default class MUC extends AbstractService implements IMUCService {
    public cancelRoomConfiguration(jid: IJID): Promise<Element> {
       let iq = $iq({
          to: jid.bare,
-         type: 'set'
-      }).c('query', {
-         xmlns: NS_OWNER
-      }).c('x', {
-         xmlns: 'jabber:x:data',
-         type: 'cancel'
-      });
+         type: 'set',
+      })
+         .c('query', {
+            xmlns: NS_OWNER,
+         })
+         .c('x', {
+            xmlns: 'jabber:x:data',
+            type: 'cancel',
+         });
 
       return this.sendIQ(iq);
    }
 
-   public sendMediatedMultiUserInvitation(receiverJid: IJID, roomJid: IJID, reason?: string) {
+   public sendMediatedMultiUserInvitation(
+      receiverJid: IJID,
+      roomJid: IJID,
+      reason?: string
+   ) {
       //@REVIEW id?
       let msg = $msg({
-         to: roomJid.bare
-      }).c('x', {
-         xmlns: NS_USER
-      }).c('invite', {
-         to: receiverJid.bare
-      });
+         to: roomJid.bare,
+      })
+         .c('x', {
+            xmlns: NS_USER,
+         })
+         .c('invite', {
+            to: receiverJid.bare,
+         });
 
       if (reason) {
          msg.c('reason').t(reason);
@@ -239,15 +276,21 @@ export default class MUC extends AbstractService implements IMUCService {
       this.send(msg);
    }
 
-   public declineMediatedMultiUserInvitation(receiverJid: IJID, roomJid: IJID, reason?: string) {
+   public declineMediatedMultiUserInvitation(
+      receiverJid: IJID,
+      roomJid: IJID,
+      reason?: string
+   ) {
       //@REVIEW id?
       let msg = $msg({
-         to: roomJid.bare
-      }).c('x', {
-         xmlns: NS_USER
-      }).c('decline', {
-         to: receiverJid.bare
-      });
+         to: roomJid.bare,
+      })
+         .c('x', {
+            xmlns: NS_USER,
+         })
+         .c('decline', {
+            to: receiverJid.bare,
+         });
 
       if (reason) {
          msg.c('reason').t(reason);
@@ -256,15 +299,20 @@ export default class MUC extends AbstractService implements IMUCService {
       this.send(msg);
    }
 
-   public sendDirectMultiUserInvitation(receiverJid: IJID, roomJid: IJID, reason?: string, password?: string) {
+   public sendDirectMultiUserInvitation(
+      receiverJid: IJID,
+      roomJid: IJID,
+      reason?: string,
+      password?: string
+   ) {
       //@REVIEW id?
       let msg = $msg({
-         to: receiverJid.bare
+         to: receiverJid.bare,
       }).c('x', {
          xmlns: NS_CONFERENCE,
          jid: roomJid.bare,
          reason,
-         password
+         password,
       });
 
       this.send(msg);

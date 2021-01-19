@@ -1,14 +1,22 @@
-import JID from '../../JID'
-import { IConnection } from '../Connection.interface'
-import * as NS from './namespace'
-import XMPPHandler from './handler'
-import Log from '../../util/Log'
-import Account from '../../Account'
-import { AbstractConnection, ExtensivePresence, Presence, STANZA_IQ_KEY, STANZA_KEY } from '../AbstractConnection'
-import XMPPJingleHandler from './JingleHandler'
-import Client from '../../Client'
+import JID from '../../JID';
+import { IConnection } from '../Connection.interface';
+import * as NS from './namespace';
+import XMPPHandler from './handler';
+import Log from '../../util/Log';
+import Account from '../../Account';
+import {
+   AbstractConnection,
+   ExtensivePresence,
+   Presence,
+   STANZA_IQ_KEY,
+   STANZA_KEY,
+} from '../AbstractConnection';
+import XMPPJingleHandler from './JingleHandler';
+import Client from '../../Client';
 
-export default class XMPPConnection extends AbstractConnection implements IConnection {
+export default class XMPPConnection
+   extends AbstractConnection
+   implements IConnection {
    private handler: XMPPHandler;
 
    constructor(account: Account, protected connection) {
@@ -21,7 +29,9 @@ export default class XMPPConnection extends AbstractConnection implements IConne
       this.processPendingStorageConnections();
       this.listenToStorageConnections();
 
-      Client.getPresenceController().registerTargetPresenceHook(this.targetPresenceHandler);
+      Client.getPresenceController().registerTargetPresenceHook(
+         this.targetPresenceHandler
+      );
    }
 
    private processPendingStorageConnections() {
@@ -45,22 +55,35 @@ export default class XMPPConnection extends AbstractConnection implements IConne
          }
       });
 
-      this.getStorage().registerHook(STANZA_IQ_KEY, (newValue, oldValue, key) => {
-         if (newValue && !oldValue) {
-            this.onIncomingStorageStanzaIQ(key, newValue);
+      this.getStorage().registerHook(
+         STANZA_IQ_KEY,
+         (newValue, oldValue, key) => {
+            if (newValue && !oldValue) {
+               this.onIncomingStorageStanzaIQ(key, newValue);
+            }
          }
-      });
+      );
    }
 
-   private targetPresenceHandler = ({presence, status}: ExtensivePresence) => {
+   private targetPresenceHandler = ({
+      presence,
+      status,
+   }: ExtensivePresence) => {
       if (presence === Presence.offline) {
          this.connection.disconnect('forced');
       } else {
          this.account.getConnection().sendPresence(presence, status);
       }
-   }
+   };
 
-   public registerHandler(handler: (stanza: string) => boolean, ns?: string, name?: string, type?: string, id?: string, from?: string) {
+   public registerHandler(
+      handler: (stanza: string) => boolean,
+      ns?: string,
+      name?: string,
+      type?: string,
+      id?: string,
+      from?: string
+   ) {
       this.connection.addHandler.apply(this.connection, arguments);
    }
 
@@ -69,7 +92,9 @@ export default class XMPPConnection extends AbstractConnection implements IConne
    }
 
    public close() {
-      Client.getPresenceController().unregisterTargetPresenceHook(this.targetPresenceHandler);
+      Client.getPresenceController().unregisterTargetPresenceHook(
+         this.targetPresenceHandler
+      );
    }
 
    public getJingleHandler() {
@@ -82,17 +107,13 @@ export default class XMPPConnection extends AbstractConnection implements IConne
 
    public getCapabilitiesByJid(jid: JID): any {
       Log.error('Deprecated function called: getCapabilitiesByJid');
-   };
+   }
 
    public hasFeatureByJid(jid: JID, feature: string);
    public hasFeatureByJid(jid: JID, feature: string[]);
-   public hasFeatureByJid() {
+   public hasFeatureByJid() {}
 
-   }
-
-   public logout() {
-
-   }
+   public logout() {}
 
    public send(stanzaElement: Element);
    public send(stanzaElement: Strophe.Builder);
@@ -111,7 +132,10 @@ export default class XMPPConnection extends AbstractConnection implements IConne
    }
 
    private onIncomingStorageStanza(key: string, stanzaString: string) {
-      let stanzaElement = new DOMParser().parseFromString(stanzaString, 'text/xml').documentElement
+      let stanzaElement = new DOMParser().parseFromString(
+         stanzaString,
+         'text/xml'
+      ).documentElement;
 
       if ($(stanzaElement).find('parsererror').length > 0) {
          Log.error('Could not parse stanza string from storage.');
@@ -124,7 +148,10 @@ export default class XMPPConnection extends AbstractConnection implements IConne
    }
 
    private onIncomingStorageStanzaIQ(key: string, stanzaString: string) {
-      let stanzaElement = new DOMParser().parseFromString(stanzaString, 'text/xml').documentElement
+      let stanzaElement = new DOMParser().parseFromString(
+         stanzaString,
+         'text/xml'
+      ).documentElement;
 
       if ($(stanzaElement).find('parsererror').length > 0) {
          Log.error('Could not parse stanza string from storage.');
@@ -132,18 +159,21 @@ export default class XMPPConnection extends AbstractConnection implements IConne
          return;
       }
 
-      this.sendIQ(stanzaElement).then((stanza: HTMLElement) => {
-         this.getStorage().setItem(key, {
-            type: 'success',
-            stanza: stanza.outerHTML
+      this.sendIQ(stanzaElement)
+         .then((stanza: HTMLElement) => {
+            this.getStorage().setItem(key, {
+               type: 'success',
+               stanza: stanza.outerHTML,
+            });
+         })
+         .catch(stanza => {
+            this.getStorage().setItem(key, {
+               type: 'error',
+               stanza: stanza.outerHTML,
+            });
+         })
+         .then(() => {
+            this.getStorage().removeItem(key);
          });
-      }).catch((stanza) => {
-         this.getStorage().setItem(key, {
-            type: 'error',
-            stanza: stanza.outerHTML
-         });
-      }).then(() => {
-         this.getStorage().removeItem(key);
-      });
    }
 }

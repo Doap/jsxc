@@ -1,6 +1,6 @@
-import Dialog from '../Dialog'
-import Device, { Trust } from '../../plugins/omemo/lib/Device'
-import { IContact } from '../../Contact.interface'
+import Dialog from '../Dialog';
+import Device, { Trust } from '../../plugins/omemo/lib/Device';
+import { IContact } from '../../Contact.interface';
 import Omemo from '../../plugins/omemo/lib/Omemo';
 import IdentityManager from 'plugins/omemo/lib/IdentityManager';
 import DateTime from '@ui/util/DateTime';
@@ -39,8 +39,16 @@ class OmemoDeviceDialog {
 
          dom.find('.jsxc-omemo-peerdevices, .jsxc-omemo-owndevices').empty();
 
-         this.insertDevices(peerDevices, identityManager, dom.find('.jsxc-omemo-peerdevices'));
-         this.insertDevices(ownDevices, identityManager, dom.find('.jsxc-omemo-owndevices'));
+         this.insertDevices(
+            peerDevices,
+            identityManager,
+            dom.find('.jsxc-omemo-peerdevices')
+         );
+         this.insertDevices(
+            ownDevices,
+            identityManager,
+            dom.find('.jsxc-omemo-owndevices')
+         );
 
          if (ownDevices.length > 1) {
             this.addCleanUpAction();
@@ -57,11 +65,14 @@ class OmemoDeviceDialog {
       let buttonElement = $('<button>');
       buttonElement.addClass('jsxc-button jsxc-button--default');
       buttonElement.text(Translation.t('Clean_up_own_devices'));
-      buttonElement.click((ev) => {
+      buttonElement.click(ev => {
          ev.preventDefault();
 
          this.omemo.cleanUpDeviceList().then(localDeviceId => {
-            dom.find('.jsxc-omemo-owndevices').children().not(`[data-device-id="${localDeviceId}"]`).remove();
+            dom.find('.jsxc-omemo-owndevices')
+               .children()
+               .not(`[data-device-id="${localDeviceId}"]`)
+               .remove();
          });
       });
       buttonElement.appendTo(dom);
@@ -72,16 +83,25 @@ class OmemoDeviceDialog {
       explanationElement.appendTo(dom);
    }
 
-   private async insertDevices(devices: Device[], identityManager: IdentityManager, listElement) {
+   private async insertDevices(
+      devices: Device[],
+      identityManager: IdentityManager,
+      listElement
+   ) {
       if (devices.length === 0) {
-         listElement.empty().append($('<p>').text(Translation.t('No_devices_available')));
+         listElement
+            .empty()
+            .append($('<p>').text(Translation.t('No_devices_available')));
 
          return;
       }
 
       for (let device of devices) {
          //@TODO show spinner
-         let properties = await this.getDeviceProperties(device, identityManager);
+         let properties = await this.getDeviceProperties(
+            device,
+            identityManager
+         );
          let element = $(omemoDeviceItemTemplate(properties));
 
          let lastUsedElement = element.find('.jsxc-omemo-device-last-used');
@@ -98,13 +118,18 @@ class OmemoDeviceDialog {
       }
    }
 
-   private async getDeviceProperties(device: Device, identityManager: IdentityManager) {
+   private async getDeviceProperties(
+      device: Device,
+      identityManager: IdentityManager
+   ) {
       let trust = device.getTrust();
       let fingerprint: string;
       let showControls = !device.isCurrentDevice();
 
       try {
-         fingerprint = await identityManager.loadFingerprint(device.getAddress());
+         fingerprint = await identityManager.loadFingerprint(
+            device.getAddress()
+         );
 
          if (device.isDisabled()) {
             device.enable();
@@ -125,23 +150,33 @@ class OmemoDeviceDialog {
          fingerprint,
          trust: Trust[trust],
          lastUsed: device.getLastUsed(),
-         showControls
+         showControls,
       };
    }
 
-   private attachActionHandler(deviceElement: JQuery<HTMLElement>, device: Device) {
+   private attachActionHandler(
+      deviceElement: JQuery<HTMLElement>,
+      device: Device
+   ) {
       const self = this;
 
-      deviceElement.find('.jsxc-omemo-device-action a').click(function(ev) {
+      deviceElement.find('.jsxc-omemo-device-action a').click(function (ev) {
          ev.preventDefault();
 
          self.actionHandler(deviceElement, $(this), device);
 
-         OMEMOPlugin.updateEncryptionState(self.contact, self.omemo.getTrust(self.contact));
+         OMEMOPlugin.updateEncryptionState(
+            self.contact,
+            self.omemo.getTrust(self.contact)
+         );
       });
    }
 
-   private actionHandler(deviceElement: JQuery<HTMLElement>, actionElement: JQuery<HTMLElement>, device: Device) {
+   private actionHandler(
+      deviceElement: JQuery<HTMLElement>,
+      actionElement: JQuery<HTMLElement>,
+      device: Device
+   ) {
       let action = actionElement.attr('data-action');
 
       if (action === 'verify') {

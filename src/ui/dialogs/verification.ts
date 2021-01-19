@@ -28,15 +28,21 @@ export default class VerificationDialog {
       this.dialog = new Dialog(content);
       let dom = this.dialog.open();
 
-      dom.find('.jsxc-selection button').click((ev) => {
+      dom.find('.jsxc-selection button').click(ev => {
          this.clickVerificationMethod($(ev.target));
       });
 
-      dom.find('.jsxc-verification-manual .jsxc-submit').click(this.submitManualVerification);
+      dom.find('.jsxc-verification-manual .jsxc-submit').click(
+         this.submitManualVerification
+      );
 
-      dom.find('.jsxc-verification-question .jsxc-submit').click(this.submitQuestionVerification);
+      dom.find('.jsxc-verification-question .jsxc-submit').click(
+         this.submitQuestionVerification
+      );
 
-      dom.find('.jsxc-verification-secret .jsxc-submit').click(this.submitSecretVerification);
+      dom.find('.jsxc-verification-secret .jsxc-submit').click(
+         this.submitSecretVerification
+      );
    }
 
    public preFill(question?: string) {
@@ -55,7 +61,7 @@ export default class VerificationDialog {
       this.dialog.close();
    }
 
-   private clickVerificationMethod = (button) => {
+   private clickVerificationMethod = button => {
       let type = button.data('type');
 
       button.siblings().removeClass('jsxc-button--primary');
@@ -65,19 +71,21 @@ export default class VerificationDialog {
 
       dom.find(`div[data-type]`).hide();
       dom.find(`div[data-type="${type}"]`).show().find('input:first').focus();
-   }
+   };
 
    private submitManualVerification = () => {
       this.session.setVerified(true);
 
       this.dialog.close();
 
-      this.contact.addSystemMessage(Translation.t('conversation_is_now_verified'));
-   }
+      this.contact.addSystemMessage(
+         Translation.t('conversation_is_now_verified')
+      );
+   };
 
    private submitQuestionVerification = () => {
-      let secret = <string> $('#jsxc-secret2').val();
-      let question = <string> $('#jsxc-quest').val();
+      let secret = <string>$('#jsxc-secret2').val();
+      let question = <string>$('#jsxc-quest').val();
 
       if (!secret || !question) {
          return;
@@ -88,10 +96,10 @@ export default class VerificationDialog {
       this.dialog.close();
 
       this.contact.addSystemMessage(Translation.t('authentication_query_sent'));
-   }
+   };
 
    private submitSecretVerification = () => {
-      let secret = <string> $('#jsxc-secret').val();
+      let secret = <string>$('#jsxc-secret').val();
 
       if (!secret) {
          return;
@@ -102,5 +110,5 @@ export default class VerificationDialog {
       this.dialog.close();
 
       this.contact.addSystemMessage(Translation.t('authentication_query_sent'));
-   }
+   };
 }

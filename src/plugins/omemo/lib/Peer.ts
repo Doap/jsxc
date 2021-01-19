@@ -1,6 +1,6 @@
-import Store from './Store'
-import Device, { Trust } from './Device'
-import * as AES from '../util/AES'
+import Store from './Store';
+import Device, { Trust } from './Device';
+import * as AES from '../util/AES';
 import Address from '../vendor/Address';
 import BundleManager from './BundleManager';
 import Session from './Session';
@@ -13,9 +13,9 @@ const MAX_PADDING = 10;
 const PADDING_CHARACTER = '​\u200B';
 
 export interface IEncryptedPeerMessage {
-   keys: EncryptedDeviceMessage[],
-   iv: BufferSource,
-   payload: ArrayBuffer,
+   keys: EncryptedDeviceMessage[];
+   iv: BufferSource;
+   payload: ArrayBuffer;
 }
 
 export default class Peer {
@@ -32,7 +32,10 @@ export default class Peer {
       return this.deviceName;
    }
 
-   public async encrypt(localPeer: Peer, plaintext: string): Promise<IEncryptedPeerMessage> {
+   public async encrypt(
+      localPeer: Peer,
+      plaintext: string
+   ): Promise<IEncryptedPeerMessage> {
       let remoteDeviceIds = this.store.getDeviceList(this.deviceName);
 
       if (remoteDeviceIds.length === 0) {
@@ -40,11 +43,15 @@ export default class Peer {
       }
 
       if (this.getTrust() === Trust.unknown) {
-         throw new Error(Translation.t('There_are_new_devices_for_your_contact'));
+         throw new Error(
+            Translation.t('There_are_new_devices_for_your_contact')
+         );
       }
 
       if (this.getTrust() === Trust.ignored) {
-         throw new Error(Translation.t('You_ignore_all_devices_of_your_contact'));
+         throw new Error(
+            Translation.t('You_ignore_all_devices_of_your_contact')
+         );
       }
 
       if (localPeer.getTrust() === Trust.unknown) {
@@ -57,7 +64,9 @@ export default class Peer {
 
       let aes = await AES.encrypt(plaintext);
       let devices = [...this.getDevices(), ...localPeer.getDevices()];
-      let promises = devices.filter(device => device.getTrust() !== Trust.ignored).map(device => device.encrypt(aes.keydata));
+      let promises = devices
+         .filter(device => device.getTrust() !== Trust.ignored)
+         .map(device => device.encrypt(aes.keydata));
 
       let keys = await Promise.all(promises);
 
@@ -71,13 +80,17 @@ export default class Peer {
       this.store.setPeerUsed(localPeer.getDeviceName());
 
       return {
-         keys: <EncryptedDeviceMessage[]> keys,
+         keys: <EncryptedDeviceMessage[]>keys,
          iv: aes.iv,
-         payload: aes.payload
+         payload: aes.payload,
       };
    }
 
-   public decrypt(deviceId: number, ciphertext, preKey: boolean = false): Promise<{ plaintextKey: ArrayBuffer, deviceTrust: Trust }> {
+   public decrypt(
+      deviceId: number,
+      ciphertext,
+      preKey: boolean = false
+   ): Promise<{ plaintextKey: ArrayBuffer; deviceTrust: Trust }> {
       let device = this.getDevice(deviceId);
 
       return device.decrypt(ciphertext, preKey).then(plaintextKey => {
@@ -123,7 +136,9 @@ export default class Peer {
             let fingerprint = await identityManager.loadFingerprint(address);
 
             if (!fingerprint) {
-               throw new Error(`Can not trust on first use, because no fingerprint for ${address} is available`);
+               throw new Error(
+                  `Can not trust on first use, because no fingerprint for ${address} is available`
+               );
             }
 
             device.setTrust(Trust.recognized);
@@ -142,7 +157,7 @@ export default class Peer {
          return true;
       });
 
-      let results = await Promise.all(promises)
+      let results = await Promise.all(promises);
 
       return results.indexOf(false) < 0;
    }

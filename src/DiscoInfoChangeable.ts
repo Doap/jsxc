@@ -1,24 +1,34 @@
-import DiscoInfo from './DiscoInfo'
+import DiscoInfo from './DiscoInfo';
 import DiscoInfoVersion from './DiscoInfoVersion';
 
 export default class DiscoInfoChangeable extends DiscoInfo {
-
    constructor(id: string) {
       super(id);
    }
 
    public getCapsVersion(): String {
-      return DiscoInfoVersion.generate(this.getIdentities(), this.getFeatures(), []);
+      return DiscoInfoVersion.generate(
+         this.getIdentities(),
+         this.getFeatures(),
+         []
+      );
    }
 
-   public addIdentity(category: string, type: string, name: string = '', lang: string = ''): boolean {
+   public addIdentity(
+      category: string,
+      type: string,
+      name: string = '',
+      lang: string = ''
+   ): boolean {
       let identities = this.getIdentities();
 
       for (let identity of identities) {
-         if (identity.category === category &&
+         if (
+            identity.category === category &&
             identity.type === type &&
             identity.name === name &&
-            identity.lang === lang) {
+            identity.lang === lang
+         ) {
             return false;
          }
       }
@@ -27,7 +37,7 @@ export default class DiscoInfoChangeable extends DiscoInfo {
          category,
          type,
          name,
-         lang
+         lang,
       });
       this.data.set('identities', identities);
 

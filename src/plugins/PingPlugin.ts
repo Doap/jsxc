@@ -1,5 +1,5 @@
-import { AbstractPlugin, IMetaData } from '../plugin/AbstractPlugin'
-import PluginAPI from '../plugin/PluginAPI'
+import { AbstractPlugin, IMetaData } from '../plugin/AbstractPlugin';
+import PluginAPI from '../plugin/PluginAPI';
 import Translation from '@util/Translation';
 import * as Namespace from '@connection/xmpp/namespace';
 import { $iq } from '@vendor/Strophe';
@@ -41,12 +41,14 @@ export default class PingPlugin extends AbstractPlugin {
    public static getMetaData(): IMetaData {
       return {
          description: Translation.t('setting-ping-enable'),
-         xeps: [{
-            id: 'XEP-0199',
-            name: 'Ping',
-            version: '2.0.1',
-         }]
-      }
+         xeps: [
+            {
+               id: 'XEP-0199',
+               name: 'Ping',
+               version: '2.0.1',
+            },
+         ],
+      };
    }
 
    constructor(pluginAPI: PluginAPI) {
@@ -54,8 +56,9 @@ export default class PingPlugin extends AbstractPlugin {
 
       this.pluginAPI.addFeature(PING);
 
-      this.pluginAPI.getConnection().registerHandler(this.onPing, PING, 'iq', null);
-
+      this.pluginAPI
+         .getConnection()
+         .registerHandler(this.onPing, PING, 'iq', null);
    }
 
    private onPing = (stanza: string): boolean => {
@@ -64,35 +67,35 @@ export default class PingPlugin extends AbstractPlugin {
       let jid = this.pluginAPI.getConnection().getJID();
       let fromAttribute = stanzaElement.attr('from');
       let id = stanzaElement.attr('id');
-      let isValidServerToClientPing = fromAttribute === jid.bare || fromAttribute === jid.domain;
+      let isValidServerToClientPing =
+         fromAttribute === jid.bare || fromAttribute === jid.domain;
 
-      let iq = isValidServerToClientPing ?
-         $iq({
-            to: fromAttribute,
-            from: jid.full,
-            type: 'result',
-            id,
-         })
-         :
-         $iq({
-            to: fromAttribute,
-            from: jid.full,
-            type: 'error',
-            id,
-         })
-            .c('ping', {
-               xmlns: PING
-            })
-            .up()
-            .c('error', {
-               type: 'cancel'
-            })
-            .c('service-unavailable', {
-               xmlns: 'urn:ietf:params:xml:ns:xmpp-stanzas'
-            });
+      let iq = isValidServerToClientPing
+         ? $iq({
+              to: fromAttribute,
+              from: jid.full,
+              type: 'result',
+              id,
+           })
+         : $iq({
+              to: fromAttribute,
+              from: jid.full,
+              type: 'error',
+              id,
+           })
+              .c('ping', {
+                 xmlns: PING,
+              })
+              .up()
+              .c('error', {
+                 type: 'cancel',
+              })
+              .c('service-unavailable', {
+                 xmlns: 'urn:ietf:params:xml:ns:xmpp-stanzas',
+              });
 
       this.pluginAPI.send(iq);
 
       return true;
-   }
+   };
 }

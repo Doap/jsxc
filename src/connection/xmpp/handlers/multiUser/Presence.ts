@@ -1,11 +1,20 @@
-import Log from '../../../../util/Log'
-import JID from '../../../../JID'
-import MultiUserContact from '../../../../MultiUserContact'
-import AbstractHandler from '../../AbstractHandler'
-import MultiUserPresenceProcessor from './PresenceProcessor'
-import Translation from '@util/Translation'
+import Log from '../../../../util/Log';
+import JID from '../../../../JID';
+import MultiUserContact from '../../../../MultiUserContact';
+import AbstractHandler from '../../AbstractHandler';
+import MultiUserPresenceProcessor from './PresenceProcessor';
+import Translation from '@util/Translation';
 
-const possibleErrorConditions = ['not-authorized', 'forbidden', 'item-not-found', 'not-allowed', 'not-acceptable', 'registration-required', 'conflict', 'service-unavailable'];
+const possibleErrorConditions = [
+   'not-authorized',
+   'forbidden',
+   'item-not-found',
+   'not-allowed',
+   'not-acceptable',
+   'registration-required',
+   'conflict',
+   'service-unavailable',
+];
 
 export default class extends AbstractHandler {
    public processStanza(stanza: Element): boolean {
@@ -25,23 +34,36 @@ export default class extends AbstractHandler {
       if (type === 'error') {
          if (from.resource === multiUserContact.getNickname()) {
             let errorElement = $(stanza).find('error');
-            let errorReason = errorElement.find('[xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"]').first()?.prop('tagName')?.toLowerCase();
+            let errorReason = errorElement
+               .find('[xmlns="urn:ietf:params:xml:ns:xmpp-stanzas"]')
+               .first()
+               ?.prop('tagName')
+               ?.toLowerCase();
 
-            if(possibleErrorConditions.includes(errorReason)) {
-               multiUserContact.addSystemMessage(Translation.t('muc_' + errorReason));
+            if (possibleErrorConditions.includes(errorReason)) {
+               multiUserContact.addSystemMessage(
+                  Translation.t('muc_' + errorReason)
+               );
             }
          }
 
          return this.PRESERVE_HANDLER;
       }
 
-      let xElement = $(stanza).find('x[xmlns="http://jabber.org/protocol/muc#user"]');
+      let xElement = $(stanza).find(
+         'x[xmlns="http://jabber.org/protocol/muc#user"]'
+      );
 
       if (xElement.length === 0) {
          return this.PRESERVE_HANDLER;
       }
 
-      new MultiUserPresenceProcessor(multiUserContact, xElement, nickname, type);
+      new MultiUserPresenceProcessor(
+         multiUserContact,
+         xElement,
+         nickname,
+         type
+      );
 
       return this.PRESERVE_HANDLER;
    }

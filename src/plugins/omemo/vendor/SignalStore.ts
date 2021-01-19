@@ -1,22 +1,23 @@
-import ISignalStore, { IIdentityKeyPair, IPreKeyPair, ISignedPreKeyPair } from '../vendor/SignalStore.interface'
-import ArrayBufferUtils from '../util/ArrayBuffer'
+import ISignalStore, {
+   IIdentityKeyPair,
+   IPreKeyPair,
+   ISignedPreKeyPair,
+} from '../vendor/SignalStore.interface';
+import ArrayBufferUtils from '../util/ArrayBuffer';
 import Store from '../lib/Store';
 import Address from './Address';
-import IdentityKey from '../model/IdentityKey'
+import IdentityKey from '../model/IdentityKey';
 import Log from '@util/Log';
 
 export const DIRECTION = {
    SENDING: 1,
-   RECEIVING: 2
+   RECEIVING: 2,
 };
 
 export default class implements ISignalStore {
-
    public Direction = DIRECTION;
 
-   constructor(private store: Store) {
-
-   }
+   constructor(private store: Store) {}
 
    public getIdentityKeyPair(): Promise<IIdentityKeyPair> {
       let identityKey = this.store.getLocalIdentityKey();
@@ -31,7 +32,11 @@ export default class implements ISignalStore {
       return Promise.resolve(this.store.getLocalRegistrationId());
    }
 
-   public isTrustedIdentity(identifier: string, publicIdentityKey: ArrayBuffer, direction: number): Promise<boolean> {
+   public isTrustedIdentity(
+      identifier: string,
+      publicIdentityKey: ArrayBuffer,
+      direction: number
+   ): Promise<boolean> {
       if (typeof identifier === 'undefined' || identifier === null) {
          throw new Error('Undefined or null is no valid identifier');
       }
@@ -46,7 +51,10 @@ export default class implements ISignalStore {
       return this.store.isTrustedIdentity(address, identityKey, direction);
    }
 
-   public saveIdentity(identifier: string, publicIdentityKey: string | ArrayBuffer): Promise<boolean> {
+   public saveIdentity(
+      identifier: string,
+      publicIdentityKey: string | ArrayBuffer
+   ): Promise<boolean> {
       if (identifier === null || identifier === undefined) {
          throw new Error('Tried to put identity key for undefined/null key');
       }
@@ -84,7 +92,9 @@ export default class implements ISignalStore {
       return this.store.removePreKey(keyId);
    }
 
-   public loadSignedPreKey(keyId: number): Promise<undefined | ISignedPreKeyPair> {
+   public loadSignedPreKey(
+      keyId: number
+   ): Promise<undefined | ISignedPreKeyPair> {
       let signedPreKey = this.store.getSignedPreKey(keyId);
       let signedPreKeyPair;
 

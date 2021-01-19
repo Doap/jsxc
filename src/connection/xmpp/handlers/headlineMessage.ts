@@ -1,7 +1,7 @@
-import AbstractHandler from '../AbstractHandler'
-import JID from '../../../JID'
-import Translation from '../../../util/Translation'
-import { TYPE, FUNCTION } from '../../../Notice'
+import AbstractHandler from '../AbstractHandler';
+import JID from '../../../JID';
+import Translation from '../../../util/Translation';
+import { TYPE, FUNCTION } from '../../../Notice';
 
 export default class extends AbstractHandler {
    public processStanza(stanza: Element) {
@@ -21,7 +21,9 @@ export default class extends AbstractHandler {
          return this.PRESERVE_HANDLER;
       }
 
-      let subject = $(stanza).find('subject:first').text() || Translation.t('Notification');
+      let subject =
+         $(stanza).find('subject:first').text() ||
+         Translation.t('Notification');
       let body = $(stanza).find('body:first').text();
 
       this.account.getNoticeManager().addNotice({

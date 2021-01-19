@@ -1,10 +1,9 @@
-import { IContact } from '../Contact.interface'
-import Color from '../util/Color'
+import { IContact } from '../Contact.interface';
+import Color from '../util/Color';
 import Client from '@src/Client';
 import { IJID } from '@src/JID.interface';
 
 export default class AvatarSet {
-
    private elements: JQuery[] = [];
 
    private static avatars = {};
@@ -32,43 +31,55 @@ export default class AvatarSet {
    public reload() {
       this.showSpinner();
 
-      this.contact.getAvatar().then((avatar) => {
-         $(this.elements).each(function() {
-            let element = $(this);
+      this.contact
+         .getAvatar()
+         .then(avatar => {
+            $(this.elements).each(function () {
+               let element = $(this);
 
-            element.css('background-image', `url(${avatar.getData()})`);
-            element.text('');
+               element.css('background-image', `url(${avatar.getData()})`);
+               element.text('');
+            });
+         })
+         .catch(msg => {
+            AvatarSet.placeholder(
+               this.elements,
+               this.contact.getName(),
+               this.contact.getJid()
+            );
+         })
+         .then(() => {
+            this.hideSpinner();
          });
-      }).catch((msg) => {
-         AvatarSet.placeholder(this.elements, this.contact.getName(), this.contact.getJid());
-      }).then(() => {
-         this.hideSpinner();
-      });
    }
 
    private constructor(private contact: IContact) {
-      this.contact.registerHook('name', (name) => {
+      this.contact.registerHook('name', name => {
          this.reload();
       });
    }
 
-   private static placeholder(elements: JQuery|JQuery[], text: string, jid: IJID) {
+   private static placeholder(
+      elements: JQuery | JQuery[],
+      text: string,
+      jid: IJID
+   ) {
       let avatarPlaceholder = Client.getOption('avatarPlaceholder');
 
       let color = Color.generate(text);
 
-      $(elements).each(function() {
+      $(elements).each(function () {
          avatarPlaceholder($(this), text, color, jid);
       });
    }
 
    public static clear(elements) {
-      $(elements).each(function() {
+      $(elements).each(function () {
          let element = $(this);
 
          element.css({
             'background-image': '',
-            'background-color': ''
+            'background-color': '',
          });
 
          element.text('');
@@ -76,13 +87,13 @@ export default class AvatarSet {
    }
 
    private showSpinner() {
-      $(this.elements).each(function() {
+      $(this.elements).each(function () {
          $(this).addClass('jsxc-avatar--loading');
       });
    }
 
    private hideSpinner() {
-      $(this.elements).each(function() {
+      $(this.elements).each(function () {
          $(this).removeClass('jsxc-avatar--loading');
       });
    }

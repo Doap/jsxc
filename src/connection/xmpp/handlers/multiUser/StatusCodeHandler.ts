@@ -1,25 +1,41 @@
-import Translation from '../../../../util/Translation'
-import MultiUserContact from '../../../../MultiUserContact'
-import MultiUserPresenceProcessor from './PresenceProcessor'
-import showSelectionDialog from '../../../../ui/dialogs/selection'
-import showRoomConfigurationDialog, { CANCELED } from '../../../../ui/dialogs/multiUserRoomConfiguration'
+import Translation from '../../../../util/Translation';
+import MultiUserContact from '../../../../MultiUserContact';
+import MultiUserPresenceProcessor from './PresenceProcessor';
+import showSelectionDialog from '../../../../ui/dialogs/selection';
+import showRoomConfigurationDialog, {
+   CANCELED,
+} from '../../../../ui/dialogs/multiUserRoomConfiguration';
 
 //@TODO those status codes are partially transmitted through message stanzas
 // https://xmpp.org/extensions/xep-0045.html#registrar-statuscodes
 
 export default class MultiUserStatusCodeHandler {
-   constructor(private presenceHandler: MultiUserPresenceProcessor, private isSelfReferred: boolean) {
-
-   }
+   constructor(
+      private presenceHandler: MultiUserPresenceProcessor,
+      private isSelfReferred: boolean
+   ) {}
 
    public processCode(code): string | void {
       if (typeof this[code] === 'function') {
-         return this[code as 110|170|171|172|173|201|301|307|321|322|332].call(this);
+         return this[
+            code as
+               | 110
+               | 170
+               | 171
+               | 172
+               | 173
+               | 201
+               | 301
+               | 307
+               | 321
+               | 322
+               | 332
+         ].call(this);
       }
    }
 
    private setNickname(nickname: string) {
-      this.presenceHandler.getMultiUserContact().setNickname(nickname)
+      this.presenceHandler.getMultiUserContact().setNickname(nickname);
    }
 
    private getNickname(): string {
@@ -60,19 +76,24 @@ export default class MultiUserStatusCodeHandler {
 
       if (multiUserContact.isAutoJoin() && multiUserContact.isInstantRoom()) {
          promise = multiUserContact.createInstantRoom();
-      } else if (multiUserContact.isAutoJoin() && multiUserContact.hasRoomConfiguration()) {
+      } else if (
+         multiUserContact.isAutoJoin() &&
+         multiUserContact.hasRoomConfiguration()
+      ) {
          promise = multiUserContact.createPreconfiguredRoom();
       } else {
          promise = showInstantOrConfigurationDialog(multiUserContact);
       }
 
-      promise.then((stanza) => {
-         if (stanza === CANCELED) {
-            this.presenceHandler.inform(Translation.t('Configuration_canceled'));
-         }
-      }).catch(() => {
-
-      });
+      promise
+         .then(stanza => {
+            if (stanza === CANCELED) {
+               this.presenceHandler.inform(
+                  Translation.t('Configuration_canceled')
+               );
+            }
+         })
+         .catch(() => {});
    }
 
    /** Inform user that he or she has been banned */
@@ -83,7 +104,7 @@ export default class MultiUserStatusCodeHandler {
 
       return Translation.t('muc_removed_info_banned', {
          nickname: this.getNickname(),
-         escapeInterpolation: true
+         escapeInterpolation: true,
       });
    }
 
@@ -95,7 +116,7 @@ export default class MultiUserStatusCodeHandler {
 
       return Translation.t('muc_removed_info_kicked', {
          nickname: this.getNickname(),
-         escapeInterpolation: true
+         escapeInterpolation: true,
       });
    }
 
@@ -107,7 +128,7 @@ export default class MultiUserStatusCodeHandler {
 
       return Translation.t('muc_removed_info_affiliation', {
          nickname: this.getNickname(),
-         escapeInterpolation: true
+         escapeInterpolation: true,
       });
    }
 
@@ -122,7 +143,7 @@ export default class MultiUserStatusCodeHandler {
 
       return Translation.t('muc_removed_info_membersonly', {
          nickname: this.getNickname(),
-         escapeInterpolation: true
+         escapeInterpolation: true,
       });
    }
 
@@ -138,26 +159,33 @@ export default class MultiUserStatusCodeHandler {
 function showInstantOrConfigurationDialog(multiUserContact: MultiUserContact) {
    return new Promise((resolve, reject) => {
       showSelectionDialog({
-         header: Translation.t('Room_creation') + ` (${multiUserContact.getName()})`,
-         message: Translation.t('Do_you_want_to_change_the_default_room_configuration'),
+         header:
+            Translation.t('Room_creation') + ` (${multiUserContact.getName()})`,
+         message: Translation.t(
+            'Do_you_want_to_change_the_default_room_configuration'
+         ),
          primary: {
             label: Translation.t('Default'),
             cb: () => {
-               multiUserContact.setRoomConfiguration(MultiUserContact.INSTANT_ROOMCONFIG);
+               multiUserContact.setRoomConfiguration(
+                  MultiUserContact.INSTANT_ROOMCONFIG
+               );
 
                let instantRoomPromise = multiUserContact.createInstantRoom();
 
                resolve(instantRoomPromise);
-            }
+            },
          },
          option: {
             label: Translation.t('Change'),
             cb: () => {
-               let roomConfigurationPromise = showRoomConfigurationDialog(multiUserContact);
+               let roomConfigurationPromise = showRoomConfigurationDialog(
+                  multiUserContact
+               );
 
                resolve(roomConfigurationPromise);
-            }
-         }
+            },
+         },
       });
    });
 }

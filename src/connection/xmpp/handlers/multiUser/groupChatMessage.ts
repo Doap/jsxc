@@ -1,10 +1,10 @@
-import Log from '../../../../util/Log'
-import JID from '../../../../JID'
-import Message from '../../../../Message'
-import Translation from '../../../../util/Translation'
-import MultiUserContact from '../../../../MultiUserContact'
-import AbstractHandler from '../../AbstractHandler'
-import { MessageMark } from '@src/Message.interface'
+import Log from '../../../../util/Log';
+import JID from '../../../../JID';
+import Message from '../../../../Message';
+import Translation from '../../../../util/Translation';
+import MultiUserContact from '../../../../MultiUserContact';
+import AbstractHandler from '../../AbstractHandler';
+import { MessageMark } from '@src/Message.interface';
 
 // body.replace(/^\/me /, '<i title="/me">' + Utils.removeHTML(this.sender.getName()) + '</i> ');
 
@@ -14,13 +14,17 @@ export default class extends AbstractHandler {
       let from = new JID(stanza.getAttribute('from'));
       let subjectElement = messageElement.find('subject');
       let bodyElement = messageElement.find('>body:first');
-      let originId = messageElement.find('origin-id[xmlns="urn:xmpp:sid:0"]').attr('id');
-      let stanzaId = messageElement.find('stanza-id[xmlns="urn:xmpp:sid:0"]').attr('id');
+      let originId = messageElement
+         .find('origin-id[xmlns="urn:xmpp:sid:0"]')
+         .attr('id');
+      let stanzaId = messageElement
+         .find('stanza-id[xmlns="urn:xmpp:sid:0"]')
+         .attr('id');
       let attrId = messageElement.attr('id');
       let body = bodyElement.text();
       let nickname = from.resource;
 
-      let contact = <MultiUserContact> this.account.getContact(from);
+      let contact = <MultiUserContact>this.account.getContact(from);
       if (typeof contact === 'undefined') {
          Log.info('Sender is not in our contact list');
 
@@ -28,7 +32,9 @@ export default class extends AbstractHandler {
       }
 
       if (contact.getType() !== 'groupchat') {
-         Log.info('This groupchat message is not intended for a MultiUserContact');
+         Log.info(
+            'This groupchat message is not intended for a MultiUserContact'
+         );
 
          return this.PRESERVE_HANDLER;
       }
@@ -58,9 +64,12 @@ export default class extends AbstractHandler {
       }
 
       let delay = messageElement.find('delay[xmlns="urn:xmpp:delay"]');
-      let sendDate = (delay.length > 0) ? new Date(delay.attr('stamp')) : new Date();
+      let sendDate =
+         delay.length > 0 ? new Date(delay.attr('stamp')) : new Date();
       let afterJoin = sendDate > contact.getJoinDate();
-      let direction = afterJoin ? Message.DIRECTION.IN : Message.DIRECTION.PROBABLY_IN;
+      let direction = afterJoin
+         ? Message.DIRECTION.IN
+         : Message.DIRECTION.PROBABLY_IN;
 
       let transcript = contact.getTranscript();
 
@@ -70,7 +79,10 @@ export default class extends AbstractHandler {
          }
 
          for (let message of transcript.getGenerator()) {
-            if (message.getAttrId() === attrId && message.getPlaintextMessage() === body) {
+            if (
+               message.getAttrId() === attrId &&
+               message.getPlaintextMessage() === body
+            ) {
                return this.PRESERVE_HANDLER;
             }
          }
@@ -122,9 +134,11 @@ export default class extends AbstractHandler {
 
       let pipe = this.account.getPipe('afterReceiveGroupMessage');
 
-      pipe.run(contact, message, messageElement.get(0)).then(([contact, message]) => {
-         contact.getTranscript().pushMessage(message);
-      });
+      pipe
+         .run(contact, message, messageElement.get(0))
+         .then(([contact, message]) => {
+            contact.getTranscript().pushMessage(message);
+         });
 
       return this.PRESERVE_HANDLER;
    }

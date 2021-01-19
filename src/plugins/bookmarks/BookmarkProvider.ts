@@ -8,9 +8,15 @@ import ContactManager from '@src/ContactManager';
 import RoleAllocator from '@src/RoleAllocator';
 
 export default class BookmarkProvider extends ContactProvider {
-   private services: {[name: string]: AbstractService} = {};
+   private services: { [name: string]: AbstractService } = {};
 
-   constructor(contactManager: ContactManager, private createMultiUserContact: (jid: IJID, name?: string) => MultiUserContact) {
+   constructor(
+      contactManager: ContactManager,
+      private createMultiUserContact: (
+         jid: IJID,
+         name?: string
+      ) => MultiUserContact
+   ) {
       super(contactManager);
    }
 
@@ -109,14 +115,21 @@ export default class BookmarkProvider extends ContactProvider {
 
       for (let id in bookmarks) {
          let bookmark = bookmarks[id];
-         contacts[contacts.length] = this.initBookmarkContact(bookmark.room, bookmark.service);
+         contacts[contacts.length] = this.initBookmarkContact(
+            bookmark.room,
+            bookmark.service
+         );
       }
 
       return contacts;
    }
 
-   private async getReducedBookmarksFromServices(): Promise<{ [id: string]: {room: RoomBookmark, service: AbstractService} }> {
-      let bookmarks: { [id: string]: {room: RoomBookmark, service: AbstractService} } = {};
+   private async getReducedBookmarksFromServices(): Promise<{
+      [id: string]: { room: RoomBookmark; service: AbstractService };
+   }> {
+      let bookmarks: {
+         [id: string]: { room: RoomBookmark; service: AbstractService };
+      } = {};
 
       for (let name in this.services) {
          let service = this.services[name];
@@ -125,7 +138,7 @@ export default class BookmarkProvider extends ContactProvider {
          for (let room of rooms) {
             bookmarks[room.getId()] = {
                room,
-               service
+               service,
             };
          }
       }
@@ -133,7 +146,10 @@ export default class BookmarkProvider extends ContactProvider {
       return bookmarks;
    }
 
-   private initBookmarkContact(bookmark: RoomBookmark, service: AbstractService): IContact {
+   private initBookmarkContact(
+      bookmark: RoomBookmark,
+      service: AbstractService
+   ): IContact {
       let contact = this.createContact(bookmark.getJid());
       contact.setNickname(bookmark.getNickname());
       contact.setPassword(bookmark.getPassword());

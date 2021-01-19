@@ -1,9 +1,9 @@
-import JID from '../JID'
-import Message from '../Message'
-import { AbstractPlugin, IMetaData } from '../plugin/AbstractPlugin'
-import PluginAPI from '../plugin/PluginAPI'
-import * as Namespace from '../connection/xmpp/namespace'
-import { $msg } from '../vendor/Strophe'
+import JID from '../JID';
+import Message from '../Message';
+import { AbstractPlugin, IMetaData } from '../plugin/AbstractPlugin';
+import PluginAPI from '../plugin/PluginAPI';
+import * as Namespace from '../connection/xmpp/namespace';
+import { $msg } from '../vendor/Strophe';
 import { IContact } from '@src/Contact.interface';
 import Translation from '@util/Translation';
 
@@ -24,12 +24,14 @@ export default class ReceiptPlugin extends AbstractPlugin {
    public static getMetaData(): IMetaData {
       return {
          description: Translation.t('setting-receipts-enable'),
-         xeps: [{
-            id: 'XEP-0184',
-            name: 'Message Delivery Receipts',
-            version: '1.2',
-         }]
-      }
+         xeps: [
+            {
+               id: 'XEP-0184',
+               name: 'Message Delivery Receipts',
+               version: '1.2',
+            },
+         ],
+      };
    }
 
    constructor(pluginAPI: PluginAPI) {
@@ -38,15 +40,25 @@ export default class ReceiptPlugin extends AbstractPlugin {
       Namespace.register('RECEIPTS', 'urn:xmpp:receipts');
       pluginAPI.addFeature(Namespace.get('RECEIPTS'));
 
-      pluginAPI.addPreSendMessageStanzaProcessor(this.preSendMessageStanzaProcessor);
+      pluginAPI.addPreSendMessageStanzaProcessor(
+         this.preSendMessageStanzaProcessor
+      );
 
       let connection = pluginAPI.getConnection();
 
       connection.registerHandler(this.onMessage, null, 'message');
-      connection.registerHandler(this.onReceiptRequest, null, 'message', 'chat');
+      connection.registerHandler(
+         this.onReceiptRequest,
+         null,
+         'message',
+         'chat'
+      );
    }
 
-   private preSendMessageStanzaProcessor = (message: Message, xmlStanza: Strophe.Builder): Promise<any> => {
+   private preSendMessageStanzaProcessor = (
+      message: Message,
+      xmlStanza: Strophe.Builder
+   ): Promise<any> => {
       if (message.getType() !== Message.MSGTYPE.CHAT) {
          return Promise.resolve([message, xmlStanza]);
       }
@@ -59,36 +71,46 @@ export default class ReceiptPlugin extends AbstractPlugin {
 
       let discoRepository = this.pluginAPI.getDiscoInfoRepository();
 
-      return discoRepository.hasFeature(message.getPeer(), [Namespace.get('RECEIPTS')]).then(hasFeature => {
-         if (hasFeature) {
-            addRequest();
-         }
+      return discoRepository
+         .hasFeature(message.getPeer(), [Namespace.get('RECEIPTS')])
+         .then(hasFeature => {
+            if (hasFeature) {
+               addRequest();
+            }
 
-         return [message, xmlStanza];
-      });
+            return [message, xmlStanza];
+         });
 
       function addRequest() {
          // Add request according to XEP-0184
-         xmlStanza.c('request', {
-            xmlns: Namespace.get('RECEIPTS')
-         }).up();
+         xmlStanza
+            .c('request', {
+               xmlns: Namespace.get('RECEIPTS'),
+            })
+            .up();
       }
-   }
+   };
 
-   private onMessage = (stanza) => {
+   private onMessage = stanza => {
       let stanzaElement = $(stanza);
       let from = stanzaElement.attr('from');
       let contact = from ? this.pluginAPI.getContact(new JID(from)) : undefined;
-      let receivedElement = stanzaElement.find('received[xmlns="urn:xmpp:receipts"]');
+      let receivedElement = stanzaElement.find(
+         'received[xmlns="urn:xmpp:receipts"]'
+      );
 
       if (contact && receivedElement.length === 1) {
          this.onReceipt(contact, receivedElement);
       }
 
       return PRESERVE_HANDLER;
-   }
+   };
 
-   private onReceipt = (contact: IContact, receivedElement: JQuery<Element>, tries = 0) => {
+   private onReceipt = (
+      contact: IContact,
+      receivedElement: JQuery<Element>,
+      tries = 0
+   ) => {
       let receivedAttrId = receivedElement.attr('id');
 
       if (!receivedAttrId) {
@@ -104,18 +126,21 @@ export default class ReceiptPlugin extends AbstractPlugin {
             this.onReceipt(contact, receivedElement, ++tries);
          }, tries * 200);
       }
-   }
+   };
 
    private onReceiptRequest = (stanza: string) => {
       let messageElement = $(stanza);
-      let isReceiptRequest = messageElement.find('request[xmlns=\'urn:xmpp:receipts\']').length > 0;
+      let isReceiptRequest =
+         messageElement.find("request[xmlns='urn:xmpp:receipts']").length > 0;
 
       if (!isReceiptRequest) {
          return PRESERVE_HANDLER;
       }
 
       //@REVIEW is ^=urn:xmpp:forward: not enough?
-      let isForwarded = messageElement.find('forwarded[xmlns="urn:xmpp:forward:0"]').length > 0;
+      let isForwarded =
+         messageElement.find('forwarded[xmlns="urn:xmpp:forward:0"]').length >
+         0;
 
       if (isForwarded) {
          return PRESERVE_HANDLER;
@@ -143,14 +168,16 @@ export default class ReceiptPlugin extends AbstractPlugin {
 
       if (subscription === 'both' || subscription === 'from') {
          // Send received according to XEP-0184
-         this.pluginAPI.send($msg({
-            to: from
-         }).c('received', {
-            xmlns: 'urn:xmpp:receipts',
-            id: messageId
-         }));
+         this.pluginAPI.send(
+            $msg({
+               to: from,
+            }).c('received', {
+               xmlns: 'urn:xmpp:receipts',
+               id: messageId,
+            })
+         );
       }
 
       return PRESERVE_HANDLER;
-   }
+   };
 }

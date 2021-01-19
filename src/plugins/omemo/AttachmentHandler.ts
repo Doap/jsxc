@@ -10,7 +10,10 @@ class AttachmentHandler {
       return 'omemo';
    }
 
-   public handler = async (attachment: Attachment, active: boolean): Promise<void> => {
+   public handler = async (
+      attachment: Attachment,
+      active: boolean
+   ): Promise<void> => {
       let data = attachment.getData();
 
       if (!data || !data.startsWith('aesgcm://')) {
@@ -37,7 +40,8 @@ class AttachmentHandler {
 
       let httpUrl = new URL(aesUrl.toString());
       httpUrl.hash = '';
-      httpUrl.protocol = window.location.hostname === 'localhost' ? 'http:' : 'https:';
+      httpUrl.protocol =
+         window.location.hostname === 'localhost' ? 'http:' : 'https:';
 
       if (!active && !Client.isTrustedDomain(httpUrl)) {
          return;
@@ -69,7 +73,7 @@ class AttachmentHandler {
          attachment.setFile(decryptedFile);
          attachment.generateThumbnail(true);
       }
-   }
+   };
 
    private downloadFile(url: string) {
       return new Promise<ArrayBuffer>((resolve, reject) => {
@@ -79,27 +83,43 @@ class AttachmentHandler {
             xhrFields: {
                responseType: 'arraybuffer',
             },
-            success: (data) => {
+            success: data => {
                resolve(data);
             },
-            error: (jqXHR) => {
+            error: jqXHR => {
                Log.warn('error while downloading file from ' + url);
 
-               reject(new Error(jqXHR && jqXHR.readyState === 0 ? 'Download was probably blocked by your browser' : 'Could not download file'));
-            }
+               reject(
+                  new Error(
+                     jqXHR && jqXHR.readyState === 0
+                        ? 'Download was probably blocked by your browser'
+                        : 'Could not download file'
+                  )
+               );
+            },
          });
-      })
+      });
    }
 
    private async decryptContent(ivKey: string, ciphertext: ArrayBuffer) {
       let iv = ArrayBufferUtils.fromHex(ivKey.slice(0, 24));
       let keyData = ArrayBufferUtils.fromHex(ivKey.slice(24));
-      let key = await crypto.subtle.importKey('raw', keyData, 'AES-GCM', false, ['decrypt']);
+      let key = await crypto.subtle.importKey(
+         'raw',
+         keyData,
+         'AES-GCM',
+         false,
+         ['decrypt']
+      );
 
-      let decrypted = await crypto.subtle.decrypt({
-         name: 'AES-GCM',
-         iv
-      }, key, ciphertext);
+      let decrypted = await crypto.subtle.decrypt(
+         {
+            name: 'AES-GCM',
+            iv,
+         },
+         key,
+         ciphertext
+      );
 
       return decrypted;
    }

@@ -1,9 +1,8 @@
-import IIdentifiable from '../Identifiable.interface'
+import IIdentifiable from '../Identifiable.interface';
 import InvalidParameterError from '../errors/InvalidParameterError';
 import IStorage from '@src/Storage.interface';
 
 export default class PersistentMap {
-
    public static getData(storage: IStorage, ...identifier: string[]) {
       let key = storage.generateKey.apply(storage, identifier);
 
@@ -19,7 +18,7 @@ export default class PersistentMap {
 
       this.map = this.storage.getItem(this.key) || {};
 
-      this.storage.registerHook(this.key, (newValue) => {
+      this.storage.registerHook(this.key, newValue => {
          this.map = newValue;
       });
    }
@@ -65,7 +64,9 @@ export default class PersistentMap {
       } else if (typeof arguments[0].getId === 'function') {
          id = arguments[0].getId();
       } else {
-         throw new InvalidParameterError('I need to know which id do you want to remove');
+         throw new InvalidParameterError(
+            'I need to know which id do you want to remove'
+         );
       }
 
       delete this.map[id];
@@ -80,14 +81,22 @@ export default class PersistentMap {
       this.storage.removeHook(this.key);
    }
 
-   public registerHook(id: string, func: (newValue: any, oldValue: any, key: string) => void);
-   public registerHook(func: (newValue: any, oldValue: any, key: string) => void);
+   public registerHook(
+      id: string,
+      func: (newValue: any, oldValue: any, key: string) => void
+   );
+   public registerHook(
+      func: (newValue: any, oldValue: any, key: string) => void
+   );
    public registerHook() {
-      if (typeof arguments[0] === 'string' && typeof arguments[1] === 'function') {
+      if (
+         typeof arguments[0] === 'string' &&
+         typeof arguments[1] === 'function'
+      ) {
          let id = arguments[0];
          let func = arguments[1];
 
-         this.storage.registerHook(this.key, function(newData, oldData) {
+         this.storage.registerHook(this.key, function (newData, oldData) {
             if (newData && !oldData) {
                func(newData[id]);
             } else if (newData[id] !== oldData[id]) {
@@ -107,7 +116,9 @@ export default class PersistentMap {
          let oldValueKeys = Object.keys(oldValue || {});
 
          if (newValueKeys.length > oldValueKeys.length) {
-            let newIds = newValueKeys.filter(id => oldValueKeys.indexOf(id) < 0);
+            let newIds = newValueKeys.filter(
+               id => oldValueKeys.indexOf(id) < 0
+            );
 
             for (let newId of newIds) {
                func(newValue[newId], newId);
@@ -122,7 +133,9 @@ export default class PersistentMap {
          let oldValueKeys = Object.keys(oldValue || {});
 
          if (newValueKeys.length < oldValueKeys.length) {
-            let removedIds = oldValueKeys.filter(id => newValueKeys.indexOf(id) < 0);
+            let removedIds = oldValueKeys.filter(
+               id => newValueKeys.indexOf(id) < 0
+            );
 
             for (let removedId of removedIds) {
                func(removedId);

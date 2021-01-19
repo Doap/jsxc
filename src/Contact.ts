@@ -1,20 +1,24 @@
-import { IContact, ContactType, ContactSubscription } from './Contact.interface'
-import Storage from './Storage'
-import JID from './JID'
-import Account from './Account'
-import PersistentMap from './util/PersistentMap'
-import IIdentifiable from './Identifiable.interface'
-import Log from './util/Log'
-import { Presence } from './connection/AbstractConnection'
-import { EncryptionState } from './plugin/AbstractPlugin'
-import Transcript from './Transcript'
-import ChatWindowController from './ChatWindowController'
-import Avatar from './Avatar'
-import Message from './Message'
+import {
+   IContact,
+   ContactType,
+   ContactSubscription,
+} from './Contact.interface';
+import Storage from './Storage';
+import JID from './JID';
+import Account from './Account';
+import PersistentMap from './util/PersistentMap';
+import IIdentifiable from './Identifiable.interface';
+import Log from './util/Log';
+import { Presence } from './connection/AbstractConnection';
+import { EncryptionState } from './plugin/AbstractPlugin';
+import Transcript from './Transcript';
+import ChatWindowController from './ChatWindowController';
+import Avatar from './Avatar';
+import Message from './Message';
 import ChatWindow from './ui/ChatWindow';
 import ContactProvider from './ContactProvider';
 import DiscoInfo from './DiscoInfo';
-import { IJID } from './JID.interface'
+import { IJID } from './JID.interface';
 
 export default class Contact implements IIdentifiable, IContact {
    protected storage: Storage;
@@ -79,8 +83,8 @@ export default class Contact implements IIdentifiable, IContact {
          groups: [],
          type: ContactType.CHAT,
          provider: 'fallback',
-         rnd: Math.random() // force storage event
-      }
+         rnd: Math.random(), // force storage event
+      };
 
       this.data = new PersistentMap(this.storage, 'contact', id);
 
@@ -128,14 +132,17 @@ export default class Contact implements IIdentifiable, IContact {
       this.jid = new JID(this.jid.bare + '/' + resource);
 
       this.data.set('jid', this.jid.full);
-   }
+   };
 
    public clearResources() {
       this.data.set('resources', {});
    }
 
    public setPresence(resource: string, presence: Presence) {
-      Log.debug('set presence for ' + this.jid.bare + ' / ' + resource, presence);
+      Log.debug(
+         'set presence for ' + this.jid.bare + ' / ' + resource,
+         presence
+      );
 
       if (resource) {
          let resources = this.data.get('resources') || {};
@@ -154,14 +161,19 @@ export default class Contact implements IIdentifiable, IContact {
       this.data.set('presence', presence);
    }
 
-   public getCapableResources(features: string[]): Promise<string[]>
-   public getCapableResources(features: string): Promise<string[]>
+   public getCapableResources(features: string[]): Promise<string[]>;
+   public getCapableResources(features: string): Promise<string[]>;
    public getCapableResources(features): Promise<string[]> {
-      return this.account.getDiscoInfoRepository().getCapableResources(this, features);
+      return this.account
+         .getDiscoInfoRepository()
+         .getCapableResources(this, features);
    }
 
-   public hasFeatureByResource(resource: string, features: string[]): Promise<{}>
-   public hasFeatureByResource(resource: string, feature: string): Promise<{}>
+   public hasFeatureByResource(
+      resource: string,
+      features: string[]
+   ): Promise<{}>;
+   public hasFeatureByResource(resource: string, feature: string): Promise<{}>;
    public hasFeatureByResource(resource, feature) {
       if (!resource) {
          throw new Error('I can not lookup a feature without resource');
@@ -172,15 +184,26 @@ export default class Contact implements IIdentifiable, IContact {
       return this.account.getDiscoInfoRepository().hasFeature(jid, feature);
    }
 
-   public getCapabilitiesByResource(resource: string): Promise<DiscoInfo | void> {
+   public getCapabilitiesByResource(
+      resource: string
+   ): Promise<DiscoInfo | void> {
       let jid = new JID(this.jid.bare + '/' + resource);
 
       return this.account.getDiscoInfoRepository().getCapabilities(jid);
    }
 
-   public registerCapableResourcesHook(features: string[], cb: (resources: string[]) => void);
-   public registerCapableResourcesHook(features: string, cb: (resources: string[]) => void);
-   public registerCapableResourcesHook(features, cb: (resources: string[]) => void) {
+   public registerCapableResourcesHook(
+      features: string[],
+      cb: (resources: string[]) => void
+   );
+   public registerCapableResourcesHook(
+      features: string,
+      cb: (resources: string[]) => void
+   );
+   public registerCapableResourcesHook(
+      features,
+      cb: (resources: string[]) => void
+   ) {
       if (typeof features === 'string') {
          features = [features];
       }
@@ -248,7 +271,9 @@ export default class Contact implements IIdentifiable, IContact {
    }
 
    public getAvatar(): Promise<Avatar> {
-      return this.account.getPipe('avatar').run(this, undefined)
+      return this.account
+         .getPipe('avatar')
+         .run(this, undefined)
          .then(([, avatar]) => {
             if (!avatar) {
                throw new Error('No avatar available for ' + this.getId());
@@ -263,14 +288,20 @@ export default class Contact implements IIdentifiable, IContact {
    }
 
    public getVcard(): Promise<any> {
-      return this.account.getConnection().getVcardService().loadVcard(this.getJid());
+      return this.account
+         .getConnection()
+         .getVcardService()
+         .loadVcard(this.getJid());
    }
 
    public setEncryptionState(state: EncryptionState, sourceId: string) {
       if (state !== EncryptionState.Plaintext && !sourceId) {
          throw new Error('No encryption source provided');
       }
-      this.data.set('encryptionPlugin', state === EncryptionState.Plaintext ? null : sourceId);
+      this.data.set(
+         'encryptionPlugin',
+         state === EncryptionState.Plaintext ? null : sourceId
+      );
       this.data.set('encryptionState', state);
    }
 
@@ -283,7 +314,10 @@ export default class Contact implements IIdentifiable, IContact {
    }
 
    public isEncrypted(): boolean {
-      return this.getEncryptionState() !== EncryptionState.Plaintext && !!this.getEncryptionPluginId();
+      return (
+         this.getEncryptionState() !== EncryptionState.Plaintext &&
+         !!this.getEncryptionPluginId()
+      );
    }
 
    public getTranscript(): Transcript {
@@ -332,7 +366,10 @@ export default class Contact implements IIdentifiable, IContact {
       this.data.set('lastMessage', lastMessage.toISOString());
    }
 
-   public registerHook(property: string, func: (newValue: any, oldValue: any) => void) {
+   public registerHook(
+      property: string,
+      func: (newValue: any, oldValue: any) => void
+   ) {
       this.data.registerHook(property, func);
    }
 

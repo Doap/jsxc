@@ -1,4 +1,3 @@
-
 export default class Hash {
    public static String(value: string) {
       let hash = 0;
@@ -8,7 +7,7 @@ export default class Hash {
       }
 
       for (let i = 0; i < value.length; i++) {
-         hash = ((hash << 5) - hash) + value.charCodeAt(i);
+         hash = (hash << 5) - hash + value.charCodeAt(i);
          hash |= 0; // Convert to 32bit integer
       }
 

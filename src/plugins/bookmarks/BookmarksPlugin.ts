@@ -1,5 +1,5 @@
-import { AbstractPlugin, IMetaData } from '../../plugin/AbstractPlugin'
-import PluginAPI from '../../plugin/PluginAPI'
+import { AbstractPlugin, IMetaData } from '../../plugin/AbstractPlugin';
+import PluginAPI from '../../plugin/PluginAPI';
 import { PubSubService } from './services/PubSubService';
 import LocalService from './services/LocalService';
 import BookmarkProvider from './BookmarkProvider';
@@ -20,19 +20,24 @@ export default class BookmarksPlugin extends AbstractPlugin {
    public static getMetaData(): IMetaData {
       return {
          description: Translation.t('setting-bookmarks-enable'),
-         xeps: [{
-            id: 'XEP-0048',
-            name: 'Bookmarks',
-            version: '1.1',
-         }]
-      }
+         xeps: [
+            {
+               id: 'XEP-0048',
+               name: 'Bookmarks',
+               version: '1.1',
+            },
+         ],
+      };
    }
 
    constructor(pluginAPI: PluginAPI) {
       super(MIN_VERSION, MAX_VERSION, pluginAPI);
 
       let contactManager = pluginAPI.getContactManager();
-      let provider = new BookmarkProvider(contactManager, pluginAPI.createMultiUserContact.bind(pluginAPI));
+      let provider = new BookmarkProvider(
+         contactManager,
+         pluginAPI.createMultiUserContact.bind(pluginAPI)
+      );
 
       provider.registerService(new LocalService(pluginAPI.getStorage()));
 

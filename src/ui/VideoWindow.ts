@@ -1,6 +1,6 @@
-import Log from '../util/Log'
-import Translation from '../util/Translation'
-import { VideoDialog } from './VideoDialog'
+import Log from '../util/Log';
+import Translation from '../util/Translation';
+import { VideoDialog } from './VideoDialog';
 import JingleMediaSession from '@src/JingleMediaSession';
 
 export default class VideoWindow {
@@ -8,7 +8,10 @@ export default class VideoWindow {
 
    private wrapperElement: JQuery;
 
-   constructor(private videoDialog: VideoDialog, private session: JingleMediaSession) {
+   constructor(
+      private videoDialog: VideoDialog,
+      private session: JingleMediaSession
+   ) {
       this.registerHooks();
       this.initWrapper();
    }
@@ -16,7 +19,10 @@ export default class VideoWindow {
    private registerHooks() {
       //@TODO remaining events: hold, resume, mute, unmute
 
-      this.session.on('change:connectionState', this.onIceConnectionStateChanged);
+      this.session.on(
+         'change:connectionState',
+         this.onIceConnectionStateChanged
+      );
       this.session.on('peerStreamAdded', this.addStream);
       this.session.on('peerStreamRemoved', this.removeStream);
       this.session.on('ringing', this.callRinging);
@@ -50,20 +56,20 @@ export default class VideoWindow {
       } else if (state === 'interrupted') {
          this.videoDialog.setStatus(Translation.t('Connection_interrupted'));
       }
-   }
+   };
 
    private callAccepted = () => {
       this.wrapperElement.removeClass('jsxc-ringing');
 
       this.videoDialog.clearStatus();
-   }
+   };
 
    private callRinging = () => {
       this.videoDialog.setStatus('ringing...', 0);
 
       this.wrapperElement.removeClass('jsxc-establishing');
       this.wrapperElement.addClass('jsxc-ringing');
-   }
+   };
 
    private addStream = (stream: MediaStream) => {
       if (this.videoElement) {
@@ -71,13 +77,19 @@ export default class VideoWindow {
       }
 
       //@REVIEW can a session contain multiple streams?
-      Log.debug('Remote stream for session ' + this.session.getId() + ' added.');
+      Log.debug(
+         'Remote stream for session ' + this.session.getId() + ' added.'
+      );
 
       let isVideoDevice = stream.getVideoTracks().length > 0;
       let isAudioDevice = stream.getAudioTracks().length > 0;
 
-      this.videoDialog.setStatus(isVideoDevice ? 'Use remote video device.' : 'No remote video device');
-      this.videoDialog.setStatus(isAudioDevice ? 'Use remote audio device.' : 'No remote audio device');
+      this.videoDialog.setStatus(
+         isVideoDevice ? 'Use remote video device.' : 'No remote video device'
+      );
+      this.videoDialog.setStatus(
+         isAudioDevice ? 'Use remote audio device.' : 'No remote audio device'
+      );
 
       this.videoElement = $('<video autoplay playsinline></video>');
       this.videoElement.appendTo(this.wrapperElement);
@@ -91,7 +103,7 @@ export default class VideoWindow {
       if (isAudioDevice) {
          this.wrapperElement.addClass('jsxc-audio-available');
       }
-   }
+   };
 
    private removeStream = () => {
       Log.debug('Remote stream for ' + this.session.getId() + ' removed.');
@@ -100,5 +112,5 @@ export default class VideoWindow {
 
       this.videoElement.remove();
       this.videoElement = undefined;
-   }
+   };
 }

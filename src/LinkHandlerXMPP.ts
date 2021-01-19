@@ -4,7 +4,7 @@ import JID from './JID';
 import Client from './Client';
 import { IContact } from './Contact.interface';
 import Contact from './Contact';
-import showMultiUserJoinDialog from './ui/dialogs/multiUserJoin'
+import showMultiUserJoinDialog from './ui/dialogs/multiUserJoin';
 import Log from '@util/Log';
 
 export default class LinkHandlerXMPP implements ILinkHandler {
@@ -18,9 +18,7 @@ export default class LinkHandlerXMPP implements ILinkHandler {
       return LinkHandlerXMPP.instance;
    }
 
-   private constructor() {
-
-   }
+   private constructor() {}
 
    public execute(uri: string) {
       if (!uri.startsWith('xmpp:')) {
@@ -40,7 +38,7 @@ export default class LinkHandlerXMPP implements ILinkHandler {
    public detect(element: JQuery = $('body')) {
       let self = this;
 
-      element.find('a[href^="xmpp:"]').each(function() {
+      element.find('a[href^="xmpp:"]').each(function () {
          self.processElement($(this));
       });
    }
@@ -52,7 +50,7 @@ export default class LinkHandlerXMPP implements ILinkHandler {
       if (typeof this.queryActions[action] === 'function') {
          element.addClass('jsxc-xmpp-scheme jsxc-xmpp-scheme--' + action);
 
-         element.off('click').click((ev) => {
+         element.off('click').click(ev => {
             ev.stopPropagation();
             ev.preventDefault();
 
@@ -82,7 +80,10 @@ export default class LinkHandlerXMPP implements ILinkHandler {
 
          for (let i = 1; i < parts.length; i++) {
             let key = parts[i].split('=')[0];
-            let value = (parts[i].indexOf('=') > 0) ? parts[i].substring(parts[i].indexOf('=') + 1) : null;
+            let value =
+               parts[i].indexOf('=') > 0
+                  ? parts[i].substring(parts[i].indexOf('=') + 1)
+                  : null;
 
             params[decodeURIComponent(key)] = decodeURIComponent(value);
          }
@@ -101,7 +102,9 @@ export default class LinkHandlerXMPP implements ILinkHandler {
          let contact = this.searchContact(jid);
 
          if (typeof contact === 'undefined') {
-            Log.info('Can not execute query action, because no account is connected');
+            Log.info(
+               'Can not execute query action, because no account is connected'
+            );
             return false;
          }
 
@@ -126,7 +129,9 @@ export default class LinkHandlerXMPP implements ILinkHandler {
          let contact = this.searchContact(jid);
 
          if (typeof contact === 'undefined') {
-            Log.info('Can not execute query action, because no account is connected');
+            Log.info(
+               'Can not execute query action, because no account is connected'
+            );
             return false;
          }
 
@@ -137,8 +142,8 @@ export default class LinkHandlerXMPP implements ILinkHandler {
          }
 
          return true;
-      }
-   }
+      },
+   };
 
    private searchContact(jid: IJID): IContact {
       let accounts = Client.getAccountManager().getAccounts();

@@ -1,15 +1,15 @@
-import JID from '../../JID'
-import { AbstractPlugin, IMetaData } from '../../plugin/AbstractPlugin'
-import PluginAPI from '../../plugin/PluginAPI'
-import Message from '../../Message'
-import Contact from '../../Contact'
-import ChatWindow from '../../ui/ChatWindow'
-import Translation from '../../util/Translation'
-import * as Namespace from '../../connection/xmpp/namespace'
-import ChatStateConnection from './ChatStateConnection'
-import ChatStateMachine from './ChatStateMachine'
+import JID from '../../JID';
+import { AbstractPlugin, IMetaData } from '../../plugin/AbstractPlugin';
+import PluginAPI from '../../plugin/PluginAPI';
+import Message from '../../Message';
+import Contact from '../../Contact';
+import ChatWindow from '../../ui/ChatWindow';
+import Translation from '../../util/Translation';
+import * as Namespace from '../../connection/xmpp/namespace';
+import ChatStateConnection from './ChatStateConnection';
+import ChatStateMachine from './ChatStateMachine';
 import { ContactType } from '@src/Contact.interface';
-import IStorage from '@src/Storage.interface'
+import IStorage from '@src/Storage.interface';
 
 /**
  * XEP-0085: Chat State Notifications
@@ -33,12 +33,14 @@ export default class ChatStatePlugin extends AbstractPlugin {
    public static getMetaData(): IMetaData {
       return {
          description: Translation.t('setting-explanation-chat-state'),
-         xeps: [{
-            id: 'XEP-0085',
-            name: 'Chat State Notifications',
-            version: '2.1',
-         }]
-      }
+         xeps: [
+            {
+               id: 'XEP-0085',
+               name: 'Chat State Notifications',
+               version: '2.1',
+            },
+         ],
+      };
    }
 
    private chatStateConnection: ChatStateConnection;
@@ -48,17 +50,26 @@ export default class ChatStatePlugin extends AbstractPlugin {
 
       Namespace.register('CHATSTATES', 'http://jabber.org/protocol/chatstates');
 
-      pluginAPI.addPreSendMessageStanzaProcessor(this.preSendMessageStanzaProcessor)
+      pluginAPI.addPreSendMessageStanzaProcessor(
+         this.preSendMessageStanzaProcessor
+      );
 
-      pluginAPI.registerChatWindowInitializedHook((chatWindow: ChatWindow, contact: Contact) => {
-         if (contact.getType() === ContactType.CHAT) {
-            new ChatStateMachine(this, chatWindow, contact);
+      pluginAPI.registerChatWindowInitializedHook(
+         (chatWindow: ChatWindow, contact: Contact) => {
+            if (contact.getType() === ContactType.CHAT) {
+               new ChatStateMachine(this, chatWindow, contact);
+            }
          }
-      });
+      );
 
       let connection = pluginAPI.getConnection();
 
-      connection.registerHandler(this.onChatState, Namespace.get('CHATSTATES'), 'message', 'chat');
+      connection.registerHandler(
+         this.onChatState,
+         Namespace.get('CHATSTATES'),
+         'message',
+         'chat'
+      );
    }
 
    public getStorage(): IStorage {
@@ -67,7 +78,9 @@ export default class ChatStatePlugin extends AbstractPlugin {
 
    public getChatStateConnection(): ChatStateConnection {
       if (!this.chatStateConnection) {
-         this.chatStateConnection = new ChatStateConnection(this.pluginAPI.send);
+         this.chatStateConnection = new ChatStateConnection(
+            this.pluginAPI.send
+         );
       }
       return this.chatStateConnection;
    }
@@ -76,22 +89,33 @@ export default class ChatStatePlugin extends AbstractPlugin {
       return this.pluginAPI.getDiscoInfoRepository();
    }
 
-   private preSendMessageStanzaProcessor = (message: Message, xmlStanza: Strophe.Builder): Promise<any> => {
+   private preSendMessageStanzaProcessor = (
+      message: Message,
+      xmlStanza: Strophe.Builder
+   ): Promise<any> => {
       if (message.getType() === Message.MSGTYPE.CHAT) {
-         xmlStanza.c('active', {
-            xmlns: Namespace.get('CHATSTATES')
-         }).up();
+         xmlStanza
+            .c('active', {
+               xmlns: Namespace.get('CHATSTATES'),
+            })
+            .up();
       }
 
       return Promise.resolve([message, xmlStanza]);
-   }
+   };
 
    private onChatState = (stanza): boolean => {
       stanza = $(stanza);
       let from = new JID(stanza.attr('from'));
-      let composingElement = stanza.find('composing' + Namespace.getFilter('CHATSTATES'));
-      let pausedElement = stanza.find('paused' + Namespace.getFilter('CHATSTATES'));
-      let activeElement = stanza.find('active' + Namespace.getFilter('CHATSTATES'));
+      let composingElement = stanza.find(
+         'composing' + Namespace.getFilter('CHATSTATES')
+      );
+      let pausedElement = stanza.find(
+         'paused' + Namespace.getFilter('CHATSTATES')
+      );
+      let activeElement = stanza.find(
+         'active' + Namespace.getFilter('CHATSTATES')
+      );
 
       if (composingElement.length > 0) {
          this.onComposing(from);
@@ -106,7 +130,7 @@ export default class ChatStatePlugin extends AbstractPlugin {
       }
 
       return true;
-   }
+   };
 
    private onComposing(from: JID) {
       let contact = this.pluginAPI.getContact(from);

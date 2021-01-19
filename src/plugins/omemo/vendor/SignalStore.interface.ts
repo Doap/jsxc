@@ -1,16 +1,29 @@
-
-export interface IIdentityKeyPair { privKey?: ArrayBuffer, pubKey: ArrayBuffer }
-export interface IPreKeyPair { pubKey, privKey }
-export interface ISignedPreKeyPair { signature, pubKey, privKey }
+export interface IIdentityKeyPair {
+   privKey?: ArrayBuffer;
+   pubKey: ArrayBuffer;
+}
+export interface IPreKeyPair {
+   pubKey;
+   privKey;
+}
+export interface ISignedPreKeyPair {
+   signature;
+   pubKey;
+   privKey;
+}
 
 interface ISignalStore {
-   Direction: { SENDING: number, RECEIVING: number }
+   Direction: { SENDING: number; RECEIVING: number };
 
    getIdentityKeyPair(): Promise<IIdentityKeyPair>;
 
    getLocalRegistrationId(): Promise<number>;
 
-   isTrustedIdentity(addressName: string, identityKey: ArrayBuffer, direction: number): Promise<boolean>;
+   isTrustedIdentity(
+      addressName: string,
+      identityKey: ArrayBuffer,
+      direction: number
+   ): Promise<boolean>;
 
    saveIdentity(address: string, identityKey: ArrayBuffer): Promise<boolean>;
 

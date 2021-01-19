@@ -1,6 +1,6 @@
-import IStorage from '../../../Storage.interface'
-import ArrayBufferUtils from '../util/ArrayBuffer'
-import { Trust } from './Device'
+import IStorage from '../../../Storage.interface';
+import ArrayBufferUtils from '../util/ArrayBuffer';
+import { Trust } from './Device';
 import IdentityKey from '../model/IdentityKey';
 import SignedPreKey from '../model/SignedPreKey';
 import PreKey from '../model/PreKey';
@@ -19,12 +19,9 @@ const PREFIX_DEVICE_USED = 'deviceUsed:';
 const KEY_DISABLED_DEVICES = 'disabledDevices';
 
 export default class Store {
-
    private signalStore: SignalStore;
 
-   constructor(private storage: IStorage) {
-
-   }
+   constructor(private storage: IStorage) {}
 
    public getSignalStore(): SignalStore {
       if (!this.signalStore) {
@@ -35,13 +32,21 @@ export default class Store {
    }
 
    private put(key: string, value: any): void {
-      if (typeof key === 'undefined' || typeof value === 'undefined' || key === null || value === null) {
+      if (
+         typeof key === 'undefined' ||
+         typeof value === 'undefined' ||
+         key === null ||
+         value === null
+      ) {
          throw new Error('I will not store undefined or null');
       }
 
-      let stringified = JSON.stringify(value, function(key, value) {
+      let stringified = JSON.stringify(value, function (key, value) {
          if (value instanceof ArrayBuffer) {
-            return 'stringifiedArrayBuffer|' + JSON.stringify(ArrayBufferUtils.toArray(value));
+            return (
+               'stringifiedArrayBuffer|' +
+               JSON.stringify(ArrayBufferUtils.toArray(value))
+            );
          }
 
          return value;
@@ -58,7 +63,7 @@ export default class Store {
       let data = this.storage.getItem(PREFIX, key);
 
       if (data) {
-         return JSON.parse(data.v, function(key, value) {
+         return JSON.parse(data.v, function (key, value) {
             if (/^stringifiedArrayBuffer\|/.test(value)) {
                let cleaned = value.replace(/^stringifiedArrayBuffer\|/, '');
 
@@ -81,7 +86,12 @@ export default class Store {
    }
 
    public isReady(): boolean {
-      return this.get('deviceId') && this.get('deviceName') && this.get('identityKey') && this.get('registrationId');
+      return (
+         this.get('deviceId') &&
+         this.get('deviceName') &&
+         this.get('identityKey') &&
+         this.get('registrationId')
+      );
    }
 
    public getPublishedVersion(): number {
@@ -174,28 +184,39 @@ export default class Store {
    }
 
    public disable(identifier: Address) {
-      let disabledDevices: number[] = this.storage.getItem(KEY_DISABLED_DEVICES, identifier.getName()) || [];
+      let disabledDevices: number[] =
+         this.storage.getItem(KEY_DISABLED_DEVICES, identifier.getName()) || [];
 
       if (disabledDevices.indexOf(identifier.getDeviceId()) < 0) {
          disabledDevices.push(identifier.getDeviceId());
 
-         this.storage.setItem(KEY_DISABLED_DEVICES, identifier.getName(), disabledDevices);
+         this.storage.setItem(
+            KEY_DISABLED_DEVICES,
+            identifier.getName(),
+            disabledDevices
+         );
       }
    }
 
    public enable(identifier: Address) {
-      let disabledDevices: number[] = this.storage.getItem(KEY_DISABLED_DEVICES, identifier.getName()) || [];
+      let disabledDevices: number[] =
+         this.storage.getItem(KEY_DISABLED_DEVICES, identifier.getName()) || [];
       let index = disabledDevices.indexOf(identifier.getDeviceId());
 
       if (index > -1) {
          disabledDevices.splice(index, 1);
 
-         this.storage.setItem(KEY_DISABLED_DEVICES, identifier.getName(), disabledDevices);
+         this.storage.setItem(
+            KEY_DISABLED_DEVICES,
+            identifier.getName(),
+            disabledDevices
+         );
       }
    }
 
    public isDisabled(identifier: Address) {
-      let disabledDevices: number[] = this.storage.getItem(KEY_DISABLED_DEVICES, identifier.getName()) || [];
+      let disabledDevices: number[] =
+         this.storage.getItem(KEY_DISABLED_DEVICES, identifier.getName()) || [];
 
       return disabledDevices.indexOf(identifier.getDeviceId()) > -1;
    }
@@ -204,11 +225,17 @@ export default class Store {
       let trustMatrix = this.getTrustMatrix(identifier);
       let fingerprint = this.getFingerprint(identifier);
 
-      if (fingerprint && trustMatrix[Trust.confirmed].indexOf(fingerprint) >= 0) {
+      if (
+         fingerprint &&
+         trustMatrix[Trust.confirmed].indexOf(fingerprint) >= 0
+      ) {
          return Trust.confirmed;
       }
 
-      if (fingerprint && trustMatrix[Trust.recognized].indexOf(fingerprint) >= 0) {
+      if (
+         fingerprint &&
+         trustMatrix[Trust.recognized].indexOf(fingerprint) >= 0
+      ) {
          return Trust.recognized;
       }
 
@@ -224,11 +251,13 @@ export default class Store {
       let fingerprint = this.getFingerprint(identifier);
 
       if (!fingerprint) {
-         throw new Error('Can not trust without a fingerprint')
+         throw new Error('Can not trust without a fingerprint');
       }
 
       for (let trustLevel in trustMatrix) {
-         trustMatrix[trustLevel] = trustMatrix[trustLevel].filter(fp => fp !== fingerprint);
+         trustMatrix[trustLevel] = trustMatrix[trustLevel].filter(
+            fp => fp !== fingerprint
+         );
       }
 
       trustMatrix[trust].push(fingerprint);
@@ -254,24 +283,39 @@ export default class Store {
       return identityKey ? identityKey.getFingerprint() : undefined;
    }
 
-   public isTrustedIdentity(identifier: Address, identityKey: IdentityKey, direction: number): Promise<boolean> {
+   public isTrustedIdentity(
+      identifier: Address,
+      identityKey: IdentityKey,
+      direction: number
+   ): Promise<boolean> {
       let fingerprint = identityKey.getFingerprint();
       let trustMatrix = this.getTrustMatrix(identifier);
 
-      if (trustMatrix[Trust.confirmed].indexOf(fingerprint) > -1 ||
+      if (
+         trustMatrix[Trust.confirmed].indexOf(fingerprint) > -1 ||
          trustMatrix[Trust.recognized].indexOf(fingerprint) > -1 ||
-         direction === DIRECTION.RECEIVING) {
+         direction === DIRECTION.RECEIVING
+      ) {
          return Promise.resolve(true);
       }
 
       return Promise.resolve(false);
    }
 
-   public saveIdentity(identifier: Address, identityKey: IdentityKey): Promise<boolean> {
+   public saveIdentity(
+      identifier: Address,
+      identityKey: IdentityKey
+   ): Promise<boolean> {
       let existing = this.getIdentityKey(identifier);
       this.setIdentityKey(identifier, identityKey);
 
-      return Promise.resolve(existing && ArrayBufferUtils.isEqual(identityKey.getPublic(), existing.getPublic()));
+      return Promise.resolve(
+         existing &&
+            ArrayBufferUtils.isEqual(
+               identityKey.getPublic(),
+               existing.getPublic()
+            )
+      );
    }
 
    public getIdentityKey(identifier: Address): IdentityKey | undefined {
@@ -283,7 +327,10 @@ export default class Store {
    }
 
    private setIdentityKey(identifier: Address, identityKey: IdentityKey) {
-      this.put(PREFIX_IDENTITY_KEY + identifier.toString(), identityKey.export());
+      this.put(
+         PREFIX_IDENTITY_KEY + identifier.toString(),
+         identityKey.export()
+      );
    }
 
    public getPreKeyIds(): number[] {
@@ -328,7 +375,10 @@ export default class Store {
    public removePreKey(keyId: number): Promise<void> {
       let preKeyIds: number[] = this.get('preKeyIds') || [];
 
-      this.put('preKeyIds', preKeyIds.filter(id => id !== keyId));
+      this.put(
+         'preKeyIds',
+         preKeyIds.filter(id => id !== keyId)
+      );
 
       return Promise.resolve(this.remove(PREFIX_PREKEY + keyId));
    }
@@ -356,13 +406,19 @@ export default class Store {
          this.put('signedPreKeyIds', ids);
       }
 
-      this.put(PREFIX_SIGNED_PREKEY + signedPreKey.getId(), signedPreKey.export())
+      this.put(
+         PREFIX_SIGNED_PREKEY + signedPreKey.getId(),
+         signedPreKey.export()
+      );
    }
 
    public removeSignedPreKey(keyId: number): Promise<void> {
       let ids: number[] = this.get('signedPreKeyIds') || [];
 
-      this.put('signedPreKeyIds', ids.filter(id => id !== keyId));
+      this.put(
+         'signedPreKeyIds',
+         ids.filter(id => id !== keyId)
+      );
 
       return Promise.resolve(this.remove(PREFIX_SIGNED_PREKEY + keyId));
    }
@@ -398,6 +454,6 @@ export default class Store {
     * Helper functions
     */
    public hasSession(identifier: string): boolean {
-      return !!this.get(PREFIX_SESSION + identifier)
+      return !!this.get(PREFIX_SESSION + identifier);
    }
 }

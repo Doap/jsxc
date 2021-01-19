@@ -1,16 +1,15 @@
-import * as NS from '../namespace'
-import Log from '../../../util/Log'
-import JID from '../../../JID'
-import Message from '../../../Message'
-import Utils from '../../../util/Utils'
-import Translation from '../../../util/Translation'
-import AbstractHandler from '../AbstractHandler'
-import { Strophe } from '../../../vendor/Strophe'
-import { FUNCTION } from '../../../Notice'
-import { MessageMark } from '@src/Message.interface'
+import * as NS from '../namespace';
+import Log from '../../../util/Log';
+import JID from '../../../JID';
+import Message from '../../../Message';
+import Utils from '../../../util/Utils';
+import Translation from '../../../util/Translation';
+import AbstractHandler from '../AbstractHandler';
+import { Strophe } from '../../../vendor/Strophe';
+import { FUNCTION } from '../../../Notice';
+import { MessageMark } from '@src/Message.interface';
 
 export default class extends AbstractHandler {
-
    public processStanza(stanza: Element) {
       let messageElement: MessageElement;
 
@@ -52,13 +51,19 @@ export default class extends AbstractHandler {
 
       let pipe = this.account.getPipe('afterReceiveMessage');
 
-      pipe.run(peerContact, message, messageElement.get(0)).then(([contact, message]) => {
-         if (message.getPlaintextMessage() || message.getHtmlMessage() || message.hasAttachment()) {
-            contact.getTranscript().pushMessage(message);
-         } else {
-            message.delete();
-         }
-      });
+      pipe
+         .run(peerContact, message, messageElement.get(0))
+         .then(([contact, message]) => {
+            if (
+               message.getPlaintextMessage() ||
+               message.getHtmlMessage() ||
+               message.hasAttachment()
+            ) {
+               contact.getTranscript().pushMessage(message);
+            } else {
+               message.delete();
+            }
+         });
 
       return this.PRESERVE_HANDLER;
    }
@@ -69,11 +74,16 @@ export default class extends AbstractHandler {
       let fromJid = new JID(messageElement.getFrom());
 
       let title = Translation.t('Unknown_sender');
-      let description = Translation.t('You_received_a_message_from_an_unknown_sender_', {
-         sender: fromJid.bare,
-      });
+      let description = Translation.t(
+         'You_received_a_message_from_an_unknown_sender_',
+         {
+            sender: fromJid.bare,
+         }
+      );
 
-      description += `\n\n>>>${Utils.escapeHTML(messageElement.getPlaintextBody())}<<<`;
+      description += `\n\n>>>${Utils.escapeHTML(
+         messageElement.getPlaintextBody()
+      )}<<<`;
 
       //@REVIEW maybe improve the dialog
       this.account.getNoticeManager().addNotice({
@@ -99,7 +109,9 @@ class MessageElement {
    }
 
    private findMessageElement(stanza: Element) {
-      let forwardedStanza = $(stanza).find('forwarded' + NS.getFilter('FORWARD'));
+      let forwardedStanza = $(stanza).find(
+         'forwarded' + NS.getFilter('FORWARD')
+      );
 
       let from = new JID($(stanza).attr('from'));
       let to = new JID($(stanza).attr('to'));
@@ -124,10 +136,13 @@ class MessageElement {
       }
 
       if (from.bare === to.bare) {
-         let carbonTagName = <string> carbonStanza.prop('tagName') || '';
+         let carbonTagName = <string>carbonStanza.prop('tagName') || '';
 
          this.carbon = true;
-         this.direction = (carbonTagName.toLowerCase() === 'sent') ? Message.DIRECTION.OUT : Message.DIRECTION.IN;
+         this.direction =
+            carbonTagName.toLowerCase() === 'sent'
+               ? Message.DIRECTION.OUT
+               : Message.DIRECTION.IN;
 
          return;
       }
@@ -189,14 +204,19 @@ class MessageElement {
 
    public getStanzaId() {
       //@REVIEW "by" attribute ?
-      let stanzaIdElement = this.element.find('stanza-id[xmlns="urn:xmpp:sid:0"]');
+      let stanzaIdElement = this.element.find(
+         'stanza-id[xmlns="urn:xmpp:sid:0"]'
+      );
 
       return stanzaIdElement.attr('id');
    }
 
    public getTime() {
       let delayElement = this.element.find('delay[xmlns="urn:xmpp:delay"]');
-      let stamp = (delayElement.length > 0) ? new Date(delayElement.attr('stamp')) : new Date();
+      let stamp =
+         delayElement.length > 0
+            ? new Date(delayElement.attr('stamp'))
+            : new Date();
 
       return stamp;
    }
@@ -205,7 +225,9 @@ class MessageElement {
       let body = Utils.removeHTML(this.element.find('> body').text());
 
       if (this.forwarded && !this.carbon) {
-         return `${this.getOriginalFrom()} ${Translation.t('to')} ${this.getOriginalTo()} "${body}"`;
+         return `${this.getOriginalFrom()} ${Translation.t(
+            'to'
+         )} ${this.getOriginalTo()} "${body}"`;
       }
 
       return body;

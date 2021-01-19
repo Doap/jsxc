@@ -1,20 +1,30 @@
-import Account from './Account'
-import JID from './JID'
+import Account from './Account';
+import JID from './JID';
 import { IContact } from 'Contact.interface';
 import ChatWindow from '@ui/ChatWindow';
 import IStorage from './Storage.interface';
-import { IOTalkJingleSession, OTalkEventNames, IEndReason } from '@vendor/Jingle.interface';
+import {
+   IOTalkJingleSession,
+   OTalkEventNames,
+   IEndReason,
+} from '@vendor/Jingle.interface';
 
 export const JINGLE_FEATURES = {
    screen: [
       'urn:xmpp:jingle:transports:ice-udp:1',
-      'urn:xmpp:jingle:apps:dtls:0'
+      'urn:xmpp:jingle:apps:dtls:0',
    ],
    audio: [],
    video: [],
 };
-JINGLE_FEATURES.audio = [...JINGLE_FEATURES.screen, 'urn:xmpp:jingle:apps:rtp:audio'];
-JINGLE_FEATURES.video = [...JINGLE_FEATURES.audio, 'urn:xmpp:jingle:apps:rtp:video'];
+JINGLE_FEATURES.audio = [
+   ...JINGLE_FEATURES.screen,
+   'urn:xmpp:jingle:apps:rtp:audio',
+];
+JINGLE_FEATURES.video = [
+   ...JINGLE_FEATURES.audio,
+   'urn:xmpp:jingle:apps:rtp:video',
+];
 
 const ADOPTED = 'adopted';
 
@@ -31,19 +41,22 @@ export default abstract class JingleAbstractSession {
    public abstract onOnceIncoming();
    protected abstract onIncoming();
 
-   constructor(protected account: Account, protected session: IOTalkJingleSession) {
+   constructor(
+      protected account: Account,
+      protected session: IOTalkJingleSession
+   ) {
       this.storage = this.account.getStorage();
 
       this.peerJID = new JID(session.peerID);
       this.peerContact = this.account.getContact(this.peerJID);
       this.peerChatWindow = this.peerContact.getChatWindow();
 
-      this.storage.registerHook(this.session.sid, (newValue) => {
+      this.storage.registerHook(this.session.sid, newValue => {
          if (newValue === ADOPTED) {
             if (!this.adoptee) {
                session.emit('aborted');
             } else {
-               session.emit(<any> 'adopt');
+               session.emit(<any>'adopt');
             }
          }
       });
@@ -68,8 +81,11 @@ export default abstract class JingleAbstractSession {
       return this.peerContact;
    }
 
-   public on(eventName: OTalkEventNames | 'adopt', handler: (data: any) => void) {
-      this.session.on(<any> eventName, (session, data) => handler(data));
+   public on(
+      eventName: OTalkEventNames | 'adopt',
+      handler: (data: any) => void
+   ) {
+      this.session.on(<any>eventName, (session, data) => handler(data));
    }
 
    public cancel(): void {

@@ -1,22 +1,24 @@
-import Log from '../../../util/Log'
-import JID from '../../../JID'
-import { IContact } from '../../../Contact.interface'
-import { TYPE as NOTICETYPE, FUNCTION as NOTICEFUNCTION } from '../../../Notice'
-import Roster from '../../../ui/Roster'
-import { Presence } from '../../AbstractConnection'
-import 'jquery'
-import AbstractHandler from '../AbstractHandler'
-import { ContactSubscription as SUBSCRIPTION } from '../../../Contact.interface'
+import Log from '../../../util/Log';
+import JID from '../../../JID';
+import { IContact } from '../../../Contact.interface';
+import {
+   TYPE as NOTICETYPE,
+   FUNCTION as NOTICEFUNCTION,
+} from '../../../Notice';
+import Roster from '../../../ui/Roster';
+import { Presence } from '../../AbstractConnection';
+import 'jquery';
+import AbstractHandler from '../AbstractHandler';
+import { ContactSubscription as SUBSCRIPTION } from '../../../Contact.interface';
 
 const PRESENCE = {
    ERROR: 'error',
    SUBSCRIBE: 'subscribe',
    UNAVAILABLE: 'unavailable',
-   UNSUBSCRIBED: 'unsubscribed'
+   UNSUBSCRIBED: 'unsubscribed',
 };
 
 export default class extends AbstractHandler {
-
    public processStanza(stanza: Element): boolean {
       Log.debug('onPresence', stanza);
 
@@ -24,7 +26,7 @@ export default class extends AbstractHandler {
          type: $(stanza).attr('type'),
          from: new JID($(stanza).attr('from')),
          show: $(stanza).find('show').text(),
-         status: $(stanza).find('status').text()
+         status: $(stanza).find('status').text(),
       };
 
       let status: Presence = this.determinePresenceStatus(presence);
@@ -46,9 +48,20 @@ export default class extends AbstractHandler {
          let errorText = errorStanza.find('text').text();
 
          if (errorStanza.find('remote-server-not-found').length > 0) {
-            Log.info(`You have an invalid contact (${presence.from.toString()}) in your contact list. The error message from ${errorBy} is: ${errorText}`);
+            Log.info(
+               `You have an invalid contact (${presence.from.toString()}) in your contact list. The error message from ${errorBy} is: ${errorText}`
+            );
          } else {
-            Log.error('[XMPP] ' + errorType + ', ' + errorCode + ', ' + errorReason + ', ' + errorText);
+            Log.error(
+               '[XMPP] ' +
+                  errorType +
+                  ', ' +
+                  errorCode +
+                  ', ' +
+                  errorReason +
+                  ', ' +
+                  errorText
+            );
          }
 
          return this.PRESERVE_HANDLER;
@@ -79,7 +92,11 @@ export default class extends AbstractHandler {
 
       Log.debug('Presence (' + presence.from.full + '): ' + Presence[status]);
 
-      this.account.triggerPresenceHook(contact, contact.getPresence(), oldPresence);
+      this.account.triggerPresenceHook(
+         contact,
+         contact.getPresence(),
+         oldPresence
+      );
 
       // preserve handler
       return this.PRESERVE_HANDLER;
@@ -87,9 +104,14 @@ export default class extends AbstractHandler {
 
    private processSubscribtionRequest(jid: JID, contact: IContact) {
       if (contact) {
-         Log.debug('Auto approve contact request, because he is already in our contact list.');
+         Log.debug(
+            'Auto approve contact request, because he is already in our contact list.'
+         );
 
-         this.account.getConnection().getRosterService().sendSubscriptionAnswer(contact.getJid(), true);
+         this.account
+            .getConnection()
+            .getRosterService()
+            .sendSubscriptionAnswer(contact.getJid(), true);
 
          if (contact.getSubscription() !== SUBSCRIPTION.TO) {
             Roster.get().add(contact);
@@ -103,14 +125,17 @@ export default class extends AbstractHandler {
          description: 'from ' + jid.bare,
          type: NOTICETYPE.contact,
          fnName: NOTICEFUNCTION.contactRequest,
-         fnParams: [jid.bare]
+         fnParams: [jid.bare],
       });
    }
 
    private determinePresenceStatus(presence): Presence {
       let status;
 
-      if (presence.type === PRESENCE.UNAVAILABLE || presence.type === PRESENCE.UNSUBSCRIBED) {
+      if (
+         presence.type === PRESENCE.UNAVAILABLE ||
+         presence.type === PRESENCE.UNSUBSCRIBED
+      ) {
          status = Presence.offline;
       } else {
          let show = presence.show;

@@ -1,8 +1,8 @@
-import Message from './Message'
-import { IMessage as IMessage, DIRECTION } from './Message.interface'
-import Contact from './Contact'
-import Storage from './Storage'
-import PersistentMap from './util/PersistentMap'
+import Message from './Message';
+import { IMessage as IMessage, DIRECTION } from './Message.interface';
+import Contact from './Contact';
+import Storage from './Storage';
+import PersistentMap from './util/PersistentMap';
 import Log from '@util/Log';
 import Client from './Client';
 
@@ -16,9 +16,13 @@ export default class Transcript {
    private messages: { [index: string]: IMessage } = {};
 
    constructor(storage: Storage, private contact: Contact) {
-      this.properties = new PersistentMap(storage, 'transcript', contact.getId());
+      this.properties = new PersistentMap(
+         storage,
+         'transcript',
+         contact.getId()
+      );
 
-      this.properties.registerHook('firstMessageId', (firstMessageId) => {
+      this.properties.registerHook('firstMessageId', firstMessageId => {
          this.firstMessage = this.getMessage(firstMessageId);
       });
    }
@@ -63,7 +67,9 @@ export default class Transcript {
 
    public getFirstMessage(): IMessage {
       if (!this.firstMessage && this.properties.get('firstMessageId')) {
-         this.firstMessage = this.getMessage(this.properties.get('firstMessageId'));
+         this.firstMessage = this.getMessage(
+            this.properties.get('firstMessageId')
+         );
       }
 
       return this.firstMessage;
@@ -74,7 +80,7 @@ export default class Transcript {
          return this.lastMessage;
       }
 
-      let ids = []
+      let ids = [];
       let lastMessage = this.getFirstMessage();
 
       while (lastMessage && lastMessage.getNextId()) {
@@ -90,7 +96,7 @@ export default class Transcript {
          lastMessage = this.getMessage(id);
       }
 
-      return this.lastMessage = lastMessage;
+      return (this.lastMessage = lastMessage);
    }
 
    public getMessage(id: string): IMessage {
@@ -98,7 +104,7 @@ export default class Transcript {
          try {
             this.messages[id] = new Message(id);
 
-            this.messages[id].registerHook('unread', (unread) => {
+            this.messages[id].registerHook('unread', unread => {
                if (!unread) {
                   this.removeMessageFromUnreadMessages(this.messages[id]);
                }
@@ -134,7 +140,10 @@ export default class Transcript {
    }
 
    private deleteLastMessages() {
-      let allowedNumberOfMessages = parseInt(Client.getOption('numberOfMessages'), 10);
+      let allowedNumberOfMessages = parseInt(
+         Client.getOption('numberOfMessages'),
+         10
+      );
       let numberOfMessages = 0;
 
       if (allowedNumberOfMessages <= 0 || isNaN(allowedNumberOfMessages)) {
@@ -175,14 +184,17 @@ export default class Transcript {
       this.firstMessage = undefined;
       this.lastMessage = undefined;
 
-      this.properties.remove('firstMessageId')
+      this.properties.remove('firstMessageId');
    }
 
    public registerNewMessageHook(func: (newValue: any, oldValue: any) => void) {
       this.registerHook('firstMessageId', func);
    }
 
-   public registerHook(property: string, func: (newValue: any, oldValue: any) => void) {
+   public registerHook(
+      property: string,
+      func: (newValue: any, oldValue: any) => void
+   ) {
       this.properties.registerHook(property, func);
    }
 
@@ -207,10 +219,14 @@ export default class Transcript {
    }
 
    private removeMessageFromUnreadMessages(message: IMessage) {
-      let unreadMessageIds: string[] = this.properties.get('unreadMessageIds') || [];
+      let unreadMessageIds: string[] =
+         this.properties.get('unreadMessageIds') || [];
 
       if (message && unreadMessageIds.includes(message.getUid())) {
-         this.properties.set('unreadMessageIds', unreadMessageIds.filter(id => id !== message.getUid()));
+         this.properties.set(
+            'unreadMessageIds',
+            unreadMessageIds.filter(id => id !== message.getUid())
+         );
       }
    }
 
@@ -224,7 +240,7 @@ export default class Transcript {
          unreadMessageIds.push(id);
          this.properties.set('unreadMessageIds', unreadMessageIds);
 
-         message.registerHook('unread', (unread) => {
+         message.registerHook('unread', unread => {
             if (!unread) {
                this.removeMessageFromUnreadMessages(message);
             }

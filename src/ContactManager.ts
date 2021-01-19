@@ -21,14 +21,14 @@ export default class ContactManager {
    private hookRepository = new HookRepository();
 
    constructor(private account: Account) {
-      this.registerNewContactHook((contact) => {
+      this.registerNewContactHook(contact => {
          Roster.get().add(contact);
 
          contact.getChatWindowController();
       });
 
-      this.registerRemovedContactHook((contact) => {
-         Roster.get().remove(contact)
+      this.registerRemovedContactHook(contact => {
+         Roster.get().remove(contact);
 
          contact.getChatWindowController().close();
       });
@@ -38,8 +38,8 @@ export default class ContactManager {
       let session = this.account.getSessionStorage();
       let cachedIds: string[] = session.getItem(KEY_CONTACTS) || [];
 
-      cachedIds.forEach((id) => this.added(id));
-      cachedIds.forEach((id) => this.triggerAddedHook(id));
+      cachedIds.forEach(id => this.added(id));
+      cachedIds.forEach(id => this.triggerAddedHook(id));
 
       session.registerHook(KEY_CONTACTS, (newValue, oldValue, key) => {
          if (key !== KEY_CONTACTS) {
@@ -76,7 +76,9 @@ export default class ContactManager {
          return;
       }
 
-      let allContacts: IContact[][] = await Promise.all(this.providers.map(provider => provider.load()));
+      let allContacts: IContact[][] = await Promise.all(
+         this.providers.map(provider => provider.load())
+      );
 
       allContacts.forEach(contacts => {
          contacts.forEach(contact => {
@@ -84,7 +86,9 @@ export default class ContactManager {
          });
       });
 
-      let contactIds = Object.keys(this.contacts).sort((a, b) => a < b ? 1 : -1);
+      let contactIds = Object.keys(this.contacts).sort((a, b) =>
+         a < b ? 1 : -1
+      );
 
       this.account.getSessionStorage().setItem(KEY_CONTACTS, contactIds);
 
@@ -94,12 +98,16 @@ export default class ContactManager {
    public async add(contact: IContact): Promise<void> {
       this.contacts[contact.getId()] = contact;
 
-      let results = await Promise.all(this.providers.map(provider => provider.add(contact)));
+      let results = await Promise.all(
+         this.providers.map(provider => provider.add(contact))
+      );
 
       if (results.indexOf(true) < 0) {
          delete this.contacts[contact.getId()];
 
-         throw new Error('Could not add contact, because all contact providers failed.');
+         throw new Error(
+            'Could not add contact, because all contact providers failed.'
+         );
       }
 
       if (!contact.getProviderId()) {
@@ -117,7 +125,9 @@ export default class ContactManager {
       }
 
       if (cache.indexOf(id) < 0) {
-         let contactIds = Object.keys(this.contacts).sort((a, b) => a < b ? 1 : -1);
+         let contactIds = Object.keys(this.contacts).sort((a, b) =>
+            a < b ? 1 : -1
+         );
 
          storage.setItem(KEY_CONTACTS, contactIds);
       }
@@ -179,10 +189,15 @@ export default class ContactManager {
       let contactIds = Object.keys(this.contacts);
 
       if (contactIds.indexOf(id) < 0) {
-         throw new Error(`Can not delete ${id} from cache, because it does not exist.`);
+         throw new Error(
+            `Can not delete ${id} from cache, because it does not exist.`
+         );
       }
 
-      this.account.getSessionStorage().setItem(KEY_CONTACTS, contactIds.filter(contactId => contactId !== id));
+      this.account.getSessionStorage().setItem(
+         KEY_CONTACTS,
+         contactIds.filter(contactId => contactId !== id)
+      );
    }
 
    private deleted(id: string) {

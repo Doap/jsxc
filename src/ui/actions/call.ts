@@ -1,15 +1,19 @@
 import { IContact } from '@src/Contact.interface';
-import Log from '../../util/Log'
-import UserMedia from '../../UserMedia'
-import { VideoDialog } from '../VideoDialog'
-import Account from '../../Account'
-import Translation from '../../util/Translation'
+import Log from '../../util/Log';
+import UserMedia from '../../UserMedia';
+import { VideoDialog } from '../VideoDialog';
+import Account from '../../Account';
+import Translation from '../../util/Translation';
 import JID from '../../JID';
 import JingleCallSession from '@src/JingleCallSession';
 import JingleHandler from '@connection/JingleHandler';
 import { JINGLE_FEATURES } from '@src/JingleAbstractSession';
 
-export async function startCall(contact: IContact, account: Account, type: 'video' | 'audio' | 'screen' = 'video') {
+export async function startCall(
+   contact: IContact,
+   account: Account,
+   type: 'video' | 'audio' | 'screen' = 'video'
+) {
    let resources = await contact.getCapableResources(JINGLE_FEATURES[type]);
 
    if (resources.length === 0) {
@@ -20,14 +24,21 @@ export async function startCall(contact: IContact, account: Account, type: 'vide
       return;
    }
 
-   let reqMedia = type === 'audio' ? ['audio'] : (type === 'screen' ? ['screen', 'audio'] : ['audio', 'video']);
+   let reqMedia =
+      type === 'audio'
+         ? ['audio']
+         : type === 'screen'
+         ? ['screen', 'audio']
+         : ['audio', 'video'];
 
    let stream: MediaStream;
 
    try {
       stream = await UserMedia.request(reqMedia);
    } catch ([msg, err]) {
-      contact.addSystemMessage(`${Translation.t('Media_failure')}: ${msg} (${err.name})`);
+      contact.addSystemMessage(
+         `${Translation.t('Media_failure')}: ${msg} (${err.name})`
+      );
 
       return;
    }
@@ -38,7 +49,13 @@ export async function startCall(contact: IContact, account: Account, type: 'vide
    videoDialog.showVideoWindow(stream);
    videoDialog.setStatus('Initiate call');
 
-   let initiateCall = CallFactory(jingleHandler, stream, type, contact, videoDialog);
+   let initiateCall = CallFactory(
+      jingleHandler,
+      stream,
+      type,
+      contact,
+      videoDialog
+   );
    let sessions: JingleCallSession[] = [];
 
    for (let resource of resources) {
@@ -66,7 +83,7 @@ export async function startCall(contact: IContact, account: Account, type: 'vide
          sessions = [];
       });
 
-      session.on('terminated', ({condition}) => {
+      session.on('terminated', ({ condition }) => {
          if (condition === 'decline') {
             cancelAllOtherSessions(sessions, session);
          }
@@ -74,7 +91,10 @@ export async function startCall(contact: IContact, account: Account, type: 'vide
    }
 }
 
-function cancelAllOtherSessions(sessions: JingleCallSession[], exception: JingleCallSession) {
+function cancelAllOtherSessions(
+   sessions: JingleCallSession[],
+   exception: JingleCallSession
+) {
    sessions.forEach((session, index) => {
       if (index !== sessions.indexOf(exception)) {
          session.cancel();
@@ -82,20 +102,31 @@ function cancelAllOtherSessions(sessions: JingleCallSession[], exception: Jingle
    });
 }
 
-function CallFactory(jingleHandler: JingleHandler, stream: MediaStream, type, contact: IContact, videoDialog: VideoDialog) {
+function CallFactory(
+   jingleHandler: JingleHandler,
+   stream: MediaStream,
+   type,
+   contact: IContact,
+   videoDialog: VideoDialog
+) {
    let constraints = {
-      offerToReceiveAudio: type === 'video' || type === 'audio' || type === 'screen',
+      offerToReceiveAudio:
+         type === 'video' || type === 'audio' || type === 'screen',
       offerToReceiveVideo: type === 'video' || type === 'screen',
-   }
+   };
 
-   return async function(resource: string) {
+   return async function (resource: string) {
       let peerJID = new JID(contact.getJid().bare + '/' + resource);
 
-      let session = <JingleCallSession> await jingleHandler.initiate(peerJID, stream, constraints);
+      let session = <JingleCallSession>(
+         await jingleHandler.initiate(peerJID, stream, constraints)
+      );
       let contactOfflineTimeout = setTimeout(() => {
          session.cancel();
 
-         contact.addSystemMessage(Translation.t('Couldnt_establish_connection'));
+         contact.addSystemMessage(
+            Translation.t('Couldnt_establish_connection')
+         );
       }, 30000);
 
       session.on('accepted', () => {
@@ -113,5 +144,5 @@ function CallFactory(jingleHandler: JingleHandler, stream: MediaStream, type, co
       videoDialog.addSession(session);
 
       return session;
-   }
+   };
 }
