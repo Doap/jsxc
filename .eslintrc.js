@@ -70,7 +70,7 @@ module.exports = {
         "@typescript-eslint/no-extra-semi": "off",
         "@typescript-eslint/no-floating-promises": "off",
         "@typescript-eslint/no-for-in-array": "error",
-        "@typescript-eslint/no-implied-eval": "off",
+        "@typescript-eslint/no-implied-eval": "error",
         "@typescript-eslint/no-inferrable-types": "off",
         "@typescript-eslint/no-misused-new": "error",
         "@typescript-eslint/no-misused-promises": "off",
