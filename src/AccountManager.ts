@@ -9,7 +9,7 @@ import Utils from '@util/Utils';
 import * as UI from './ui/web';
 
 export default class AccountManager {
-   private accounts = {};
+   private accounts: { [id: string]: Account } = {};
 
    constructor(private storage: IStorage) {}
 
@@ -29,7 +29,7 @@ export default class AccountManager {
       return numberOfAccounts;
    }
 
-   private initAccount = id => {
+   private initAccount = (id: string) => {
       if (this.accounts[id]) {
          Log.debug('destroy old account with uid ' + id);
 
