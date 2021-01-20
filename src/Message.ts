@@ -153,6 +153,7 @@ export default class Message implements IIdentifiable, IMessage {
    }
 
    public getId() {
+      // eslint-disable-next-line no-console
       console.trace('Deprecated Message.getId called');
       return this.getUid();
    }
@@ -190,6 +191,7 @@ export default class Message implements IIdentifiable, IMessage {
             : message.getUid();
 
       if (this.getNextId() === this.uid) {
+         // eslint-disable-next-line no-console
          console.trace('Loop detected ' + this.uid);
       } else {
          this.data.set('next', nextId);

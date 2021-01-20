@@ -7,6 +7,7 @@ if (scriptElements.length) {
 } else if (typeof (<any>window).jsxc_public_path === 'string') {
    __webpack_public_path__ = (<any>window).jsxc_public_path;
 } else {
+   // eslint-disable-next-line no-console
    console.warn(
       'Could not find script element which points to ' +
          __BUNDLE_NAME__ +

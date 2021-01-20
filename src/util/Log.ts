@@ -74,6 +74,7 @@ export class Logger implements ILog {
                ? 'warn'
                : 'log';
 
+         // eslint-disable-next-line no-console
          console[logFunction].apply(this, args);
       }
    }
